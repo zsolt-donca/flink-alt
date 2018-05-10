@@ -3,33 +3,32 @@ package com.github.flinkalt
 import cats.Functor
 import cats.data.State
 import cats.kernel.Semigroup
-import com.github.flinkalt.time.Duration
+import com.github.flinkalt.time.{Duration, Instant}
 import simulacrum.typeclass
 
 @typeclass
 trait DStream[F[_]] extends Functor[F] {
-  def flatMap[T, U](f: F[T])(fun: T => Seq[U]): F[U]
-  def collect[T, U](f: F[T])(pf: PartialFunction[T, U]): F[U]
-  def filter[T](f: F[T])(predicate: T => Boolean): F[T]
+  def flatMap[A, B](f: F[A])(fun: A => Seq[B]): F[B]
+  def collect[A, B](f: F[A])(pf: PartialFunction[A, B]): F[B]
+  def filter[A](f: F[A])(predicate: A => Boolean): F[A]
 
-  def mapWithState[K, S, T, U](f: F[T])(stateTrans: StateTrans[K, S, T, U]): F[U]
-  def flatMapWithState[K, S, T, U](f: F[T])(stateTrans: StateTrans[K, S, T, Vector[U]]): F[U]
+  def mapWithState[K, S, A, B](f: F[A])(stateTrans: StateTrans[K, S, A, B]): F[B]
+  def flatMapWithState[K, S, A, B](f: F[A])(stateTrans: StateTrans[K, S, A, Vector[B]]): F[B]
 
-
+  def windowReduce[K, A: Semigroup, B](fa: F[A])(windowType: WindowType, windowReduce: WindowReduce[K, A, B]): F[B]
 }
 
 case class StateTrans[+K, S, -A, B](key: A => K, trans: A => State[Option[S], B])
 
-object StateTrans {
 
-}
+case class Window(start: Instant, end: Instant)
 
 sealed trait WindowType
 case class TumblingWindow(size: Duration) extends WindowType
 case class SlidingWindow(size: Duration, slide: Duration) extends WindowType
 
-trait MapReduce[K, T, M] {
-  def key: T => K
+case class WindowReduce[K, A, B](key: A => K, trigger: (K, Window, A) => B)
 
-  def mapping(implicit M: Semigroup[M]): T => M
+object WindowReduce {
+  def apply[K, A](key: A => K): WindowReduce[K, A, A] = WindowReduce(key, (_, _, a) => a)
 }
