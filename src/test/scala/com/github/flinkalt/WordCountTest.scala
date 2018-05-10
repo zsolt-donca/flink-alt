@@ -1,10 +1,12 @@
 package com.github.flinkalt
 
 import cats.data.State
-import com.github.flinkalt.memory.MemoryDStream
+import com.github.flinkalt.memory.{Data, MemoryDStream}
+import com.github.flinkalt.time.Instant
 import org.scalatest.FunSuite
 
 class WordCountTest extends FunSuite {
+
   import DStream.ops._
 
   test("Word count") {
@@ -23,9 +25,26 @@ class WordCountTest extends FunSuite {
       lines.flatMap(splitToWords).mapWithState(counting)
     }
 
-    val stream = MemoryDStream(Vector("x", "y", "z", "y"))
+    def data[T](time: Instant, value: T): Data[T] = Data(time, time, value)
+    def timeAt(i: Int): Instant = Instant(1000L + i)
+
+    val stream = MemoryDStream(Vector(
+      data(timeAt(0), "x"),
+      data(timeAt(1), "y z"),
+      data(timeAt(2), ""),
+      data(timeAt(5), "z q y y")
+    ))
     val outStream: MemoryDStream[(String, Int)] = wordCount(stream)
 
-    assert(outStream.vector == Vector(("x", 1), ("y", 1), ("z", 1), ("y", 2)))
+    val actualValues = outStream.vector
+    assert(actualValues == Vector(
+      data(timeAt(0), ("x", 1)),
+      data(timeAt(1), ("y", 1)),
+      data(timeAt(1), ("z", 1)),
+      data(timeAt(5), ("z", 2)),
+      data(timeAt(5), ("q", 1)),
+      data(timeAt(5), ("y", 2)),
+      data(timeAt(5), ("y", 3))
+    ))
   }
 }
