@@ -6,12 +6,12 @@ import com.github.flinkalt.memory.{Data, MemoryDStream}
 import com.github.flinkalt.time.{Duration, Instant}
 import org.scalatest.FunSuite
 
-class WordCountTest extends FunSuite {
+class MemoryDStreamTest extends FunSuite {
 
   import DStream.ops._
 
   test("Total Word Count") {
-    def wordCount[DS[_] : DStream](lines: DS[String]): DS[Count[String]] = {
+    def wordCountProgram[DS[_] : DStream](lines: DS[String]): DS[Count[String]] = {
       lines
         .flatMap(splitToWords)
         .mapWithState(zipWithCount)
@@ -24,7 +24,7 @@ class WordCountTest extends FunSuite {
       data(timeAt(5), "z q y y")
     ))
 
-    val outStream: MemoryDStream[Count[String]] = wordCount(stream)
+    val outStream: MemoryDStream[Count[String]] = wordCountProgram(stream)
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
@@ -43,11 +43,11 @@ class WordCountTest extends FunSuite {
       override def combine(x: Count[T], y: Count[T]): Count[T] = Count(y.value, x.count + y.count)
     }
 
-    def wordCount[DS[_] : DStream](lines: DS[String]): DS[Count[String]] = {
+    def wordCountProgram[DS[_] : DStream](lines: DS[String]): DS[Count[String]] = {
       lines
         .flatMap(splitToWords)
         .map(s => Count(s, 1))
-        .windowReduce(SlidingWindow(Duration(4), Duration(2)), WindowReduce(_.value))
+        .windowReduce(SlidingWindow(Duration(4), Duration(2)), _.value)(WindowTrigger.identity)
     }
 
     val stream = MemoryDStream(Vector(
@@ -57,7 +57,7 @@ class WordCountTest extends FunSuite {
       data(timeAt(6), "z q y y")
     ))
 
-    val outStream: MemoryDStream[Count[String]] = wordCount(stream)
+    val outStream: MemoryDStream[Count[String]] = wordCountProgram(stream)
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
@@ -88,7 +88,7 @@ class WordCountTest extends FunSuite {
     case object Large extends Size
 
     def slidingSumsByDecimal[DS[_] : DStream](nums: DS[Int]): DS[(Size, Window, Int)] = {
-      nums.windowReduce(SlidingWindow(Duration(10), Duration(5)), WindowReduce(i => if (i < 10) Small else Large, (size: Size, win: Window, a: Int) => (size, win, a)))
+      nums.windowReduce(SlidingWindow(Duration(10), Duration(5)), i => if (i < 10) Small else Large)((size, win, a) => (size, win, a))
     }
 
     val stream = MemoryDStream(Vector(

@@ -8,6 +8,7 @@ import cats.kernel.Semigroup
 import cats.syntax.functor._
 import cats.syntax.traverse._
 import cats.syntax.semigroup._
+import com.github.flinkalt.WindowTrigger.WindowTrigger
 import com.github.flinkalt.time.{Duration, Instant}
 import com.github.flinkalt._
 
@@ -53,20 +54,20 @@ object MemoryDStream {
       MemoryDStream(vector)
     }
 
-    override def windowReduce[K, A: Semigroup, B](fa: MemoryDStream[A])(windowType: WindowType, windowReduce: WindowReduce[K, A, B]): MemoryDStream[B] = {
+    override def windowReduce[K, A: Semigroup, B](fa: MemoryDStream[A])(windowType: WindowType, key: A => K)(trigger: WindowTrigger[K, A, B]): MemoryDStream[B] = {
       val trans: Data[A] => State[Map[Window, Map[K, A]], Vector[Data[B]]] = da => {
         State { windows =>
           val wins = calculateWindows(da.time, windowType)
-          val key = windowReduce.key(da.value)
-          val updatedWindows = wins.map(win => win -> Map(key -> da.value)).toMap
+          val k = key(da.value)
+          val updatedWindows = wins.map(win => win -> Map(k -> da.value)).toMap
           val newWindows = windows |+| updatedWindows
-          val (results, remainingWindows) = triggerExpiredWindows(newWindows, da.watermark, windowReduce.trigger)
+          val (results, remainingWindows) = triggerExpiredWindows(newWindows, da.watermark, trigger)
 
           (remainingWindows, results)
         }
       }
       val (winState, vector) = fa.vector.flatTraverse(trans).run(Map.empty).value
-      val finalResults = triggerWindows(winState, windowReduce.trigger)
+      val finalResults = triggerWindows(winState, trigger)
       MemoryDStream(vector ++ finalResults)
     }
   }
@@ -100,6 +101,7 @@ object MemoryDStream {
     val bs = triggered.flatMap({ case (win, values) => values.map({ case (k, a) => Data(win.end, win.end, trigger(k, win, a)) }) }).toVector
     bs
   }
+
   private def ceil(time: Instant, size: Duration): Instant = {
     val t = time.millis
     val s = size.millis

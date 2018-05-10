@@ -3,6 +3,7 @@ package com.github.flinkalt
 import cats.Functor
 import cats.data.State
 import cats.kernel.Semigroup
+import com.github.flinkalt.WindowTrigger.WindowTrigger
 import com.github.flinkalt.time.{Duration, Instant}
 import simulacrum.typeclass
 
@@ -15,10 +16,10 @@ trait DStream[F[_]] extends Functor[F] {
   def mapWithState[K, S, A, B](f: F[A])(stateTrans: StateTrans[K, S, A, B]): F[B]
   def flatMapWithState[K, S, A, B](f: F[A])(stateTrans: StateTrans[K, S, A, Vector[B]]): F[B]
 
-  def windowReduce[K, A: Semigroup, B](fa: F[A])(windowType: WindowType, windowReduce: WindowReduce[K, A, B]): F[B]
+  def windowReduce[K, A: Semigroup, B](fa: F[A])(windowType: WindowType, key: A => K)(trigger: WindowTrigger[K, A, B]): F[B]
 }
 
-case class StateTrans[+K, S, -A, B](key: A => K, trans: A => State[Option[S], B])
+case class StateTrans[K, S, A, B](key: A => K, trans: A => State[Option[S], B])
 
 
 case class Window(start: Instant, end: Instant)
@@ -27,8 +28,9 @@ sealed trait WindowType
 case class TumblingWindow(size: Duration) extends WindowType
 case class SlidingWindow(size: Duration, slide: Duration) extends WindowType
 
-case class WindowReduce[K, A, B](key: A => K, trigger: (K, Window, A) => B)
 
-object WindowReduce {
-  def apply[K, A](key: A => K): WindowReduce[K, A, A] = WindowReduce(key, (_, _, a) => a)
+object WindowTrigger {
+  type WindowTrigger[K, A, B] = (K, Window, A) => B
+
+  def identity[K, A]: WindowTrigger[K, A, A] = (_, _, a) => a
 }
