@@ -18,23 +18,23 @@ class MemoryDStreamTest extends FunSuite {
     }
 
     val stream = MemoryDStream(Vector(
-      data(timeAt(0), "x"),
-      data(timeAt(1), "y z"),
-      data(timeAt(2), ""),
-      data(timeAt(5), "z q y y")
+      syncedData(timeAt(0), "x"),
+      syncedData(timeAt(1), "y z"),
+      syncedData(timeAt(2), ""),
+      syncedData(timeAt(5), "z q y y")
     ))
 
     val outStream: MemoryDStream[Count[String]] = wordCountProgram(stream)
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
-      data(timeAt(0), Count("x", 1)),
-      data(timeAt(1), Count("y", 1)),
-      data(timeAt(1), Count("z", 1)),
-      data(timeAt(5), Count("z", 2)),
-      data(timeAt(5), Count("q", 1)),
-      data(timeAt(5), Count("y", 2)),
-      data(timeAt(5), Count("y", 3))
+      syncedData(timeAt(0), Count("x", 1)),
+      syncedData(timeAt(1), Count("y", 1)),
+      syncedData(timeAt(1), Count("z", 1)),
+      syncedData(timeAt(5), Count("z", 2)),
+      syncedData(timeAt(5), Count("q", 1)),
+      syncedData(timeAt(5), Count("y", 2)),
+      syncedData(timeAt(5), Count("y", 3))
     ))
   }
 
@@ -51,32 +51,32 @@ class MemoryDStreamTest extends FunSuite {
     }
 
     val stream = MemoryDStream(Vector(
-      data(timeAt(0), "x"),
-      data(timeAt(2), "y z"),
-      data(timeAt(3), "y"),
-      data(timeAt(6), "z q y y")
+      syncedData(timeAt(0), "x"),
+      syncedData(timeAt(2), "y z"),
+      syncedData(timeAt(3), "y"),
+      syncedData(timeAt(6), "z q y y")
     ))
 
     val outStream: MemoryDStream[Count[String]] = wordCountProgram(stream)
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
-      data(timeAt(2), Count("x", 1)),
+      Data(time = timeAt(2), watermark = timeAt(2), Count("x", 1)),
 
-      data(timeAt(4), Count("y", 2)),
-      data(timeAt(4), Count("x", 1)),
-      data(timeAt(4), Count("z", 1)),
+      Data(time = timeAt(4), watermark = timeAt(6), Count("y", 2)),
+      Data(time = timeAt(4), watermark = timeAt(6), Count("x", 1)),
+      Data(time = timeAt(4), watermark = timeAt(6), Count("z", 1)),
 
-      data(timeAt(6), Count("z", 1)),
-      data(timeAt(6), Count("y", 2)),
+      Data(time = timeAt(6), watermark = timeAt(6), Count("z", 1)),
+      Data(time = timeAt(6), watermark = timeAt(6), Count("y", 2)),
 
-      data(timeAt(8), Count("q", 1)),
-      data(timeAt(8), Count("z", 1)),
-      data(timeAt(8), Count("y", 2)),
+      Data(time = timeAt(8), watermark = timeAt(8), Count("q", 1)),
+      Data(time = timeAt(8), watermark = timeAt(8), Count("z", 1)),
+      Data(time = timeAt(8), watermark = timeAt(8), Count("y", 2)),
 
-      data(timeAt(10), Count("q", 1)),
-      data(timeAt(10), Count("z", 1)),
-      data(timeAt(10), Count("y", 2))
+      Data(time = timeAt(10), watermark = timeAt(10), Count("q", 1)),
+      Data(time = timeAt(10), watermark = timeAt(10), Count("z", 1)),
+      Data(time = timeAt(10), watermark = timeAt(10), Count("y", 2))
     ))
   }
 
@@ -92,39 +92,76 @@ class MemoryDStreamTest extends FunSuite {
     }
 
     val stream = MemoryDStream(Vector(
-      data(timeAt(0), 1),
-      data(timeAt(0), 2),
-      data(timeAt(0), 10),
-      data(timeAt(0), 12),
+      syncedData(timeAt(0), 1),
+      syncedData(timeAt(0), 2),
+      syncedData(timeAt(0), 10),
+      syncedData(timeAt(0), 12),
 
-      data(timeAt(3), 3),
-      data(timeAt(3), 3),
+      syncedData(timeAt(3), 3),
+      syncedData(timeAt(3), 3),
 
-      data(timeAt(7), 4),
-      data(timeAt(7), 13),
+      syncedData(timeAt(7), 4),
+      syncedData(timeAt(7), 13),
 
-      data(timeAt(11), 11),
-      data(timeAt(12), 7)
+      syncedData(timeAt(11), 11),
+      syncedData(timeAt(12), 7)
     ))
 
     val outStream: MemoryDStream[(Size, Window, Int)] = slidingSumsByDecimal(stream)
     val actualValues = outStream.vector
     assert(actualValues == Vector(
-      data(timeAt(5), (Large, Window(start = timeAt(-5), end = timeAt(5)), 10 + 12)),
-      data(timeAt(5), (Small, Window(start = timeAt(-5), end = timeAt(5)), 1 + 2 + 3 + 3)),
+      Data(time = timeAt(5), watermark = timeAt(7), (Large, Window(start = timeAt(-5), end = timeAt(5)), 10 + 12)),
+      Data(time = timeAt(5), watermark = timeAt(7), (Small, Window(start = timeAt(-5), end = timeAt(5)), 1 + 2 + 3 + 3)),
 
-      data(timeAt(10), (Large, Window(start = timeAt(0), end = timeAt(10)), 10 + 12 + 13)),
-      data(timeAt(10), (Small, Window(start = timeAt(0), end = timeAt(10)), 1 + 2 + 3 + 3 + 4)),
+      Data(time = timeAt(10), watermark = timeAt(11), (Large, Window(start = timeAt(0), end = timeAt(10)), 10 + 12 + 13)),
+      Data(time = timeAt(10), watermark = timeAt(11), (Small, Window(start = timeAt(0), end = timeAt(10)), 1 + 2 + 3 + 3 + 4)),
 
-      data(timeAt(15), (Large, Window(start = timeAt(5), end = timeAt(15)), 13 + 11)),
-      data(timeAt(15), (Small, Window(start = timeAt(5), end = timeAt(15)), 4 + 7)),
-
-      data(timeAt(20), (Small, Window(start = timeAt(10), end = timeAt(20)), 7)),
-      data(timeAt(20), (Large, Window(start = timeAt(10), end = timeAt(20)), 11))
+      Data(time = timeAt(15), watermark = timeAt(15), (Large, Window(start = timeAt(5), end = timeAt(15)), 13 + 11)),
+      Data(time = timeAt(15), watermark = timeAt(15), (Small, Window(start = timeAt(5), end = timeAt(15)), 4 + 7)),
+      
+      Data(time = timeAt(20), watermark = timeAt(20), (Small, Window(start = timeAt(10), end = timeAt(20)), 7)),
+      Data(time = timeAt(20), watermark = timeAt(20), (Large, Window(start = timeAt(10), end = timeAt(20)), 11))
     ))
   }
 
-  private def data[T](time: Instant, value: T): Data[T] = Data(time, time, value)
+  test("Sliding numbers with late watermarks") {
+    import cats.instances.list._
+
+    def slidingSumsByDecimal[DS[_] : DStream](nums: DS[Int]): DS[List[Int]] = {
+      nums
+        .map(i => List(i))
+        .windowReduce(SlidingWindow(Duration(10), Duration(2)), _ => ())(WindowTrigger.identity)
+    }
+
+    val stream = MemoryDStream(Vector(
+      Data(time = timeAt(1), watermark = timeAt(1), value = 1),
+      Data(time = timeAt(2), watermark = timeAt(1), value = 2),
+      Data(time = timeAt(3), watermark = timeAt(1), value = 3),
+      Data(time = timeAt(4), watermark = timeAt(1), value = 4),
+      Data(time = timeAt(5), watermark = timeAt(3), value = 5),
+      Data(time = timeAt(6), watermark = timeAt(3), value = 6),
+      Data(time = timeAt(7), watermark = timeAt(3), value = 7),
+      Data(time = timeAt(8), watermark = timeAt(6), value = 8),
+      Data(time = timeAt(9), watermark = timeAt(6), value = 9)
+    ))
+
+    val outStream: MemoryDStream[List[Int]] = slidingSumsByDecimal(stream)
+
+    val actualValues = outStream.vector
+    assert(actualValues == Vector(
+      Data(time = timeAt(2), watermark = timeAt(3), value = List(1)),
+      Data(time = timeAt(4), watermark = timeAt(6), value = List(1, 2, 3)),
+      Data(time = timeAt(6), watermark = timeAt(6), value = List(1, 2, 3, 4, 5)),
+      Data(time = timeAt(8), watermark = timeAt(8), value = List(1, 2, 3, 4, 5, 6, 7)),
+      Data(time = timeAt(10), watermark = timeAt(10), value = List(1, 2, 3, 4, 5, 6, 7, 8, 9)),
+      Data(time = timeAt(12), watermark = timeAt(12), value = List(2, 3, 4, 5, 6, 7, 8, 9)),
+      Data(time = timeAt(14), watermark = timeAt(14), value = List(4, 5, 6, 7, 8, 9)),
+      Data(time = timeAt(16), watermark = timeAt(16), value = List(6, 7, 8, 9)),
+      Data(time = timeAt(18), watermark = timeAt(18), value = List(8, 9))
+    ))
+  }
+
+  private def syncedData[T](time: Instant, value: T): Data[T] = Data(time, time, value)
 
   private def timeAt(i: Int): Instant = Instant(1000L + i)
 

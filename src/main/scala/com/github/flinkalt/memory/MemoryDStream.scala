@@ -4,7 +4,7 @@ import cats.Functor
 import cats.data.State
 import cats.instances.vector._
 import cats.instances.map._
-import cats.kernel.Semigroup
+import cats.kernel.{Order, Semigroup}
 import cats.syntax.functor._
 import cats.syntax.traverse._
 import cats.syntax.semigroup._
@@ -55,20 +55,24 @@ object MemoryDStream {
     }
 
     override def windowReduce[K, A: Semigroup, B](fa: MemoryDStream[A])(windowType: WindowType, key: A => K)(trigger: WindowTrigger[K, A, B]): MemoryDStream[B] = {
-      val trans: Data[A] => State[Map[Window, Map[K, A]], Vector[Data[B]]] = da => {
-        State { windows =>
+      case class ReduceState(lastWatermark: Option[Instant], windows: Map[Window, Map[K, A]])
+      val trans: Data[A] => State[ReduceState, Vector[Data[B]]] = da => {
+        State { case ReduceState(lastWatermark, windows) =>
+          lastWatermark.filter(last => last > da.watermark).foreach(last => sys.error(s"Watermark moves backwards; last: $last, current: ${da.watermark}"))
+
           val wins = calculateWindows(da.time, windowType)
           val k = key(da.value)
           val updatedWindows = wins.map(win => win -> Map(k -> da.value)).toMap
           val newWindows = windows |+| updatedWindows
           val (results, remainingWindows) = triggerExpiredWindows(newWindows, da.watermark, trigger)
 
-          (remainingWindows, results)
+          (ReduceState(Some(da.watermark), remainingWindows), results)
         }
       }
-      val (winState, vector) = fa.vector.flatTraverse(trans).run(Map.empty).value
-      val finalResults = triggerWindows(winState, trigger)
-      MemoryDStream(vector ++ finalResults)
+      val (lastState, triggered) = fa.vector.flatTraverse(trans).run(ReduceState(None, Map.empty)).value
+      val finalResults = lastState.lastWatermark.map(watermark => triggerWindows(lastState.windows, trigger, watermark)).getOrElse(Vector.empty)
+      val results = triggered ++ finalResults
+      MemoryDStream(results)
     }
   }
 
@@ -93,13 +97,13 @@ object MemoryDStream {
 
   private def triggerExpiredWindows[K, A, B](windows: Map[Window, Map[K, A]], watermark: Instant, trigger: (K, Window, A) => B): (Vector[Data[B]], Map[Window, Map[K, A]]) = {
     val (triggered, remaining) = windows.partition({ case (w, _) => w.end <= watermark })
-    val bs = triggerWindows(triggered, trigger)
+    val bs = triggerWindows(triggered, trigger, watermark)
     (bs, remaining)
   }
 
-  private def triggerWindows[B, A, K](triggered: Map[Window, Map[K, A]], trigger: (K, Window, A) => B) = {
-    val bs = triggered.flatMap({ case (win, values) => values.map({ case (k, a) => Data(win.end, win.end, trigger(k, win, a)) }) }).toVector
-    bs
+  private def triggerWindows[B, A, K](triggered: Map[Window, Map[K, A]], trigger: (K, Window, A) => B, watermark: Instant): Vector[Data[B]] = {
+    val results = triggered.flatMap({ case (win, values) => values.map({ case (k, a) => Data(win.end, Order.max(watermark, win.end), trigger(k, win, a)) }) }).toVector
+    results.sortBy(_.time.millis)
   }
 
   private def ceil(time: Instant, size: Duration): Instant = {
