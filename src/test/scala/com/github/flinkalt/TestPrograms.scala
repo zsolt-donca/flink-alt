@@ -4,7 +4,6 @@ import cats.data.State
 import cats.instances.int._
 import cats.instances.list._
 import cats.kernel.Semigroup
-import com.github.flinkalt.time.Duration
 import org.apache.flink.api.scala._
 
 case class Count[T](value: T, count: Int)
@@ -28,24 +27,27 @@ object TestPrograms {
   // the programs themselves
 
   def totalWordCount[DS[_] : DStream : Stateful](lines: DS[String]): DS[Count[String]] = {
-    lines.flatMap(splitToWords).mapWithState(zipWithCount)
+    lines
+      .flatMap(splitToWords)
+      .mapWithState(zipWithCount)
   }
 
-  def slidingWordCount[DS[_] : DStream : Windowed](lines: DS[String]): DS[Count[String]] = {
+  def slidingWordCount[DS[_] : DStream : Windowed](lines: DS[String], windowType: WindowType): DS[Count[String]] = {
     lines
       .flatMap(splitToWords)
       .map(s => Count(s, 1))
-      .windowReduce(SlidingWindow(Duration(4), Duration(2)), _.value)
+      .windowReduce(windowType, _.value)
   }
 
-  def slidingSumsBySize[DS[_] : DStream : Windowed](nums: DS[Int]): DS[(Size, Window, Int)] = {
-    nums.windowReduceMapped(SlidingWindow(Duration(10), Duration(5)), i => if (i < 10) Small else Large)((size: Size, win: Window, a: Int) => (size, win, a))
+  def slidingSumsBySize[DS[_] : DStream : Windowed](nums: DS[Int], windowType: WindowType): DS[(Size, Window, Int)] = {
+    val key: Int => Size = i => if (i < 10) Small else Large
+    nums.windowReduceMapped(windowType, key)((size: Size, win: Window, a: Int) => (size, win, a))
   }
 
-  def totalSlidingSums[DS[_] : DStream : Windowed](nums: DS[Int]): DS[List[Int]] = {
+  def totalSlidingSums[DS[_] : DStream : Windowed](nums: DS[Int], windowType: WindowType): DS[List[Int]] = {
     nums
       .map(i => List(i))
-      .windowReduce(SlidingWindow(Duration(10), Duration(2)), _ => ())
+      .windowReduce(windowType, _ => ())
   }
 
   // helpers below

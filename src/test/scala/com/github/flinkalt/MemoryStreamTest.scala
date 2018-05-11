@@ -1,7 +1,7 @@
 package com.github.flinkalt
 
 import com.github.flinkalt.memory.{Data, MemoryStream}
-import com.github.flinkalt.time.Instant
+import com.github.flinkalt.time._
 import org.scalatest.FunSuite
 
 class MemoryStreamTest extends FunSuite {
@@ -39,7 +39,7 @@ class MemoryStreamTest extends FunSuite {
       syncedData(timeAt(6), "z q y y")
     ))
 
-    val outStream: MemoryStream[Count[String]] = TestPrograms.slidingWordCount(stream)
+    val outStream: MemoryStream[Count[String]] = TestPrograms.slidingWordCount(stream, SlidingWindow(4 seconds, 2 seconds))
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
@@ -63,7 +63,6 @@ class MemoryStreamTest extends FunSuite {
   }
 
   test("Sliding number ladder") {
-
     val stream = MemoryStream(Vector(
       syncedData(timeAt(0), 1),
       syncedData(timeAt(0), 2),
@@ -80,7 +79,7 @@ class MemoryStreamTest extends FunSuite {
       syncedData(timeAt(12), 7)
     ))
 
-    val outStream: MemoryStream[(Size, Window, Int)] = TestPrograms.slidingSumsBySize(stream)
+    val outStream: MemoryStream[(Size, Window, Int)] = TestPrograms.slidingSumsBySize(stream, SlidingWindow(10 seconds, 5 seconds))
     val actualValues = outStream.vector
     assert(actualValues == Vector(
       Data(time = timeAt(5), watermark = timeAt(7), (Large, Window(start = timeAt(-5), end = timeAt(5)), 10 + 12)),
@@ -111,7 +110,7 @@ class MemoryStreamTest extends FunSuite {
       Data(time = timeAt(9), watermark = timeAt(6), value = 9)
     ))
 
-    val outStream: MemoryStream[List[Int]] = TestPrograms.totalSlidingSums(stream)
+    val outStream: MemoryStream[List[Int]] = TestPrograms.totalSlidingSums(stream, SlidingWindow(10 seconds, 2 seconds))
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
@@ -129,6 +128,6 @@ class MemoryStreamTest extends FunSuite {
 
   private def syncedData[T](time: Instant, value: T): Data[T] = Data(time, time, value)
 
-  private def timeAt(i: Int): Instant = Instant(1000L + i)
+  private def timeAt(i: Int): Instant = Instant(10000L + i * 1000)
 
 }

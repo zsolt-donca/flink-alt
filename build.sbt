@@ -48,6 +48,7 @@ lazy val commonSettings = Seq(
     "-unchecked",
     "-language:higherKinds",
     "-language:implicitConversions",
+    "-language:postfixOps",
     "-Ywarn-dead-code",
     "-Ywarn-unused",
     "-Ywarn-unused-import",
