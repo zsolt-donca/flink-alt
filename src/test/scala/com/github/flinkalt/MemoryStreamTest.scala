@@ -2,29 +2,31 @@ package com.github.flinkalt
 
 import cats.data.State
 import cats.kernel.Semigroup
-import com.github.flinkalt.memory.{Data, MemoryDStream}
+import com.github.flinkalt.memory.{Data, MemoryStream}
 import com.github.flinkalt.time.{Duration, Instant}
 import org.scalatest.FunSuite
 
-class MemoryDStreamTest extends FunSuite {
+class MemoryStreamTest extends FunSuite {
 
   import DStream.ops._
+  import Stateful.ops._
+  import Windowed.ops._
 
   test("Total Word Count") {
-    def wordCountProgram[DS[_] : DStream](lines: DS[String]): DS[Count[String]] = {
+    def wordCountProgram[DS[_] : DStream : Stateful](lines: DS[String]): DS[Count[String]] = {
       lines
         .flatMap(splitToWords)
         .mapWithState(zipWithCount)
     }
 
-    val stream = MemoryDStream(Vector(
+    val stream = MemoryStream(Vector(
       syncedData(timeAt(0), "x"),
       syncedData(timeAt(1), "y z"),
       syncedData(timeAt(2), ""),
       syncedData(timeAt(5), "z q y y")
     ))
 
-    val outStream: MemoryDStream[Count[String]] = wordCountProgram(stream)
+    val outStream: MemoryStream[Count[String]] = wordCountProgram(stream)
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
@@ -43,21 +45,21 @@ class MemoryDStreamTest extends FunSuite {
       override def combine(x: Count[T], y: Count[T]): Count[T] = Count(y.value, x.count + y.count)
     }
 
-    def wordCountProgram[DS[_] : DStream](lines: DS[String]): DS[Count[String]] = {
+    def wordCountProgram[DS[_] : DStream : Windowed](lines: DS[String]): DS[Count[String]] = {
       lines
         .flatMap(splitToWords)
         .map(s => Count(s, 1))
         .windowReduce(SlidingWindow(Duration(4), Duration(2)), _.value)(WindowTrigger.identity)
     }
 
-    val stream = MemoryDStream(Vector(
+    val stream = MemoryStream(Vector(
       syncedData(timeAt(0), "x"),
       syncedData(timeAt(2), "y z"),
       syncedData(timeAt(3), "y"),
       syncedData(timeAt(6), "z q y y")
     ))
 
-    val outStream: MemoryDStream[Count[String]] = wordCountProgram(stream)
+    val outStream: MemoryStream[Count[String]] = wordCountProgram(stream)
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
@@ -87,11 +89,11 @@ class MemoryDStreamTest extends FunSuite {
     case object Small extends Size
     case object Large extends Size
 
-    def slidingSumsByDecimal[DS[_] : DStream](nums: DS[Int]): DS[(Size, Window, Int)] = {
+    def slidingSumsByDecimal[DS[_] : DStream : Windowed](nums: DS[Int]): DS[(Size, Window, Int)] = {
       nums.windowReduce(SlidingWindow(Duration(10), Duration(5)), i => if (i < 10) Small else Large)((size, win, a) => (size, win, a))
     }
 
-    val stream = MemoryDStream(Vector(
+    val stream = MemoryStream(Vector(
       syncedData(timeAt(0), 1),
       syncedData(timeAt(0), 2),
       syncedData(timeAt(0), 10),
@@ -107,7 +109,7 @@ class MemoryDStreamTest extends FunSuite {
       syncedData(timeAt(12), 7)
     ))
 
-    val outStream: MemoryDStream[(Size, Window, Int)] = slidingSumsByDecimal(stream)
+    val outStream: MemoryStream[(Size, Window, Int)] = slidingSumsByDecimal(stream)
     val actualValues = outStream.vector
     assert(actualValues == Vector(
       Data(time = timeAt(5), watermark = timeAt(7), (Large, Window(start = timeAt(-5), end = timeAt(5)), 10 + 12)),
@@ -127,13 +129,13 @@ class MemoryDStreamTest extends FunSuite {
   test("Sliding numbers with late watermarks") {
     import cats.instances.list._
 
-    def slidingSumsByDecimal[DS[_] : DStream](nums: DS[Int]): DS[List[Int]] = {
+    def slidingSumsByDecimal[DS[_] : DStream : Windowed](nums: DS[Int]): DS[List[Int]] = {
       nums
         .map(i => List(i))
         .windowReduce(SlidingWindow(Duration(10), Duration(2)), _ => ())(WindowTrigger.identity)
     }
 
-    val stream = MemoryDStream(Vector(
+    val stream = MemoryStream(Vector(
       Data(time = timeAt(1), watermark = timeAt(1), value = 1),
       Data(time = timeAt(2), watermark = timeAt(1), value = 2),
       Data(time = timeAt(3), watermark = timeAt(1), value = 3),
@@ -145,7 +147,7 @@ class MemoryDStreamTest extends FunSuite {
       Data(time = timeAt(9), watermark = timeAt(6), value = 9)
     ))
 
-    val outStream: MemoryDStream[List[Int]] = slidingSumsByDecimal(stream)
+    val outStream: MemoryStream[List[Int]] = slidingSumsByDecimal(stream)
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
