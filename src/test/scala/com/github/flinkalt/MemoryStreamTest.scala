@@ -39,7 +39,7 @@ class MemoryStreamTest extends FunSuite {
       syncedData(timeAt(6), "z q y y")
     ))
 
-    val outStream: MemoryStream[Count[String]] = TestPrograms.slidingWordCount(stream, SlidingWindow(4 seconds, 2 seconds))
+    val outStream: MemoryStream[Count[String]] = TestPrograms.slidingWordCount(SlidingWindow(4 seconds, 2 seconds))(stream)
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
@@ -79,7 +79,7 @@ class MemoryStreamTest extends FunSuite {
       syncedData(timeAt(12), 7)
     ))
 
-    val outStream: MemoryStream[(Size, Window, Int)] = TestPrograms.slidingSumsBySize(stream, SlidingWindow(10 seconds, 5 seconds))
+    val outStream: MemoryStream[(Size, Window, Int)] = TestPrograms.slidingSumsBySize(SlidingWindow(10 seconds, 5 seconds))(stream)
     val actualValues = outStream.vector
     assert(actualValues == Vector(
       Data(time = timeAt(5), watermark = timeAt(7), (Large, Window(start = timeAt(-5), end = timeAt(5)), 10 + 12)),
@@ -110,7 +110,7 @@ class MemoryStreamTest extends FunSuite {
       Data(time = timeAt(9), watermark = timeAt(6), value = 9)
     ))
 
-    val outStream: MemoryStream[List[Int]] = TestPrograms.totalSlidingSums(stream, SlidingWindow(10 seconds, 2 seconds))
+    val outStream: MemoryStream[List[Int]] = TestPrograms.totalSlidingSums(SlidingWindow(10 seconds, 2 seconds))(stream)
 
     val actualValues = outStream.vector
     assert(actualValues == Vector(
