@@ -4,16 +4,16 @@ import cats.data.State
 import cats.instances.vector._
 import cats.syntax.functor._
 import cats.syntax.traverse._
-import com.github.flinkalt.{StateTrans, Stateful}
+import com.github.flinkalt.{StateTrans, Stateful, TypeInfo}
 
 object MemoryStateful extends Stateful[MemoryStream] {
-  override def mapWithState[K, S, A, B](f: MemoryStream[A])(stateTrans: StateTrans[K, S, A, B]): MemoryStream[B] = {
+  override def mapWithState[K: TypeInfo, S: TypeInfo, A, B: TypeInfo](f: MemoryStream[A])(stateTrans: StateTrans[K, S, A, B]): MemoryStream[B] = {
     val trans: Data[A] => State[Map[K, S], Data[B]] = da => stateByKey(stateTrans.key(da.value), stateTrans.trans(da.value)).map(da.as)
     val vector = f.vector.traverse(trans).runA(Map.empty).value
     MemoryStream(vector)
   }
 
-  override def flatMapWithState[K, S, A, B](f: MemoryStream[A])(stateTrans: StateTrans[K, S, A, Vector[B]]): MemoryStream[B] = {
+  override def flatMapWithState[K: TypeInfo, S: TypeInfo, A, B: TypeInfo](f: MemoryStream[A])(stateTrans: StateTrans[K, S, A, Vector[B]]): MemoryStream[B] = {
     val trans: Data[A] => State[Map[K, S], Vector[Data[B]]] = da => stateByKey(stateTrans.key(da.value), stateTrans.trans(da.value)).map(v => v.map(da.as))
     val vector = f.vector.flatTraverse(trans).runA(Map.empty).value
     MemoryStream(vector)

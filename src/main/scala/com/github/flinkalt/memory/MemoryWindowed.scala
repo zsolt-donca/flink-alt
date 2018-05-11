@@ -6,12 +6,17 @@ import cats.instances.vector._
 import cats.kernel.{Order, Semigroup}
 import cats.syntax.semigroup._
 import cats.syntax.traverse._
-import com.github.flinkalt.WindowTrigger.WindowTrigger
-import com.github.flinkalt.time.{Duration, Instant}
+import com.github.flinkalt.Windowed.WindowMapper
 import com.github.flinkalt._
+import com.github.flinkalt.time.{Duration, Instant}
 
 object MemoryWindowed extends Windowed[MemoryStream] {
-  override def windowReduce[K, A: Semigroup, B](fa: MemoryStream[A])(windowType: WindowType, key: A => K)(trigger: WindowTrigger[K, A, B]): MemoryStream[B] = {
+
+  override def windowReduce[K: TypeInfo, A: Semigroup : TypeInfo](fa: MemoryStream[A])(windowType: WindowType, key: A => K): MemoryStream[A] = {
+    windowReduceMapped(fa)(windowType, key)((_, _, a) => a)
+  }
+
+  override def windowReduceMapped[K: TypeInfo, A: Semigroup, B: TypeInfo](fa: MemoryStream[A])(windowType: WindowType, key: A => K)(trigger: WindowMapper[K, A, B]): MemoryStream[B] = {
     case class ReduceState(lastWatermark: Option[Instant], windows: Map[Window, Map[K, A]])
     val trans: Data[A] => State[ReduceState, Vector[Data[B]]] = da => {
       State { case ReduceState(lastWatermark, windows) =>
