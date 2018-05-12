@@ -12,6 +12,10 @@ class FlinkDataStreamTest extends FunSuite {
 
   import com.github.flinkalt.flink._
 
+  test("Number Juggling") {
+    runTestCase(TestPrograms.numberJugglingTestCase)
+  }
+
   test("Total Word Count") {
     runTestCase(TestPrograms.totalWordCountTestCase)
   }

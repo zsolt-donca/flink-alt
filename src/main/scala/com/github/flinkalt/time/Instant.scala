@@ -14,5 +14,7 @@ case class Instant(millis: Long) extends AnyVal {
 }
 
 object Instant {
+  val minValue: Instant = Instant(Long.MinValue)
+
   implicit def instantOrder: Order[Instant] = Order.by(_.millis)
 }

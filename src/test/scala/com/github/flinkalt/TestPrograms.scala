@@ -20,7 +20,7 @@ case object Small extends Size
 case object Large extends Size
 
 // necessary boilerplate, Scala does not have built-in the concept of polymorphic functions
-// turns out there can be many ways a function can be "polymorphic"
+// also, it turns out there can be many ways a function can be "polymorphic"
 // this is neither what shapeless nor what cats calls polymorphic functions
 trait DStreamFun[A, B] {
   def apply[DS[_] : DStream : Windowed : Stateful]: DS[A] => DS[B]
@@ -42,6 +42,40 @@ object TestPrograms {
 
   // the programs themselves
 
+  // simple transformations, no state nor windowing
+  def numberJuggling[DS[_] : DStream](input: DS[Int]): DS[String] = {
+    input
+      .map(i => i * 5)
+      .filter(i => i % 20 != 0)
+      .flatMap(i => List(i, i / 2))
+      .collect({
+        case i if i % 2 == 0 => s"even: $i"
+        case i if i % 2 != 0 => s"odd: $i"
+      })
+  }
+
+  val numberJugglingTestCase = TestCase(
+    input = Vector(
+      syncedData(at(0 seconds), 1),
+      syncedData(at(1 seconds), 3),
+      syncedData(at(2 seconds), 4),
+      syncedData(at(3 seconds), 2)
+    ),
+    // watermark lags behind when doing simple transformations as well, without any effect
+    output = Vector(
+      Data(time = at(0 seconds), watermark = Instant.minValue, "odd: 5"),
+      Data(time = at(0 seconds), watermark = Instant.minValue, "even: 2"),
+      Data(time = at(1 seconds), watermark = at(0 seconds), "odd: 15"),
+      Data(time = at(1 seconds), watermark = at(0 seconds), "odd: 7"),
+      Data(time = at(3 seconds), watermark = at(2 seconds), "even: 10"),
+      Data(time = at(3 seconds), watermark = at(2 seconds), "odd: 5")
+    ),
+    program = new DStreamFun[Int, String] {
+      override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[String] = numberJuggling
+    }
+  )
+
+
   // word count using a stateful transformation counting each element, each value having an individual state
   def totalWordCount[DS[_] : DStream : Stateful](lines: DS[String]): DS[Count[String]] = {
     lines
@@ -58,7 +92,7 @@ object TestPrograms {
     ),
     // watermarks are always lagging behind, coming from the previous value (and thus Long.MinValue for the first)
     output = Vector(
-      Data(time = at(0 seconds), watermark = Instant(Long.MinValue), Count("x", 1)),
+      Data(time = at(0 seconds), watermark = Instant.minValue, Count("x", 1)),
       Data(time = at(1 seconds), watermark = at(0 seconds), Count("y", 1)),
       Data(time = at(1 seconds), watermark = at(0 seconds), Count("z", 1)),
       Data(time = at(5 seconds), watermark = at(2 seconds), Count("z", 2)),
