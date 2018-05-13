@@ -1,5 +1,8 @@
 package com.github.flinkalt
 
+import cats.Order
+import cats.instances.long._
+import cats.instances.string._
 import com.github.flinkalt.memory.MemoryStream
 import org.scalatest.FunSuite
 
@@ -28,10 +31,14 @@ class MemoryStreamTest extends FunSuite {
   }
 
   private def runTestCase[A: TypeInfo, B: TypeInfo](testCase: TestCase[A, B]): Unit = {
-    val stream = MemoryStream(testCase.input)
-    val outStream = testCase.program[MemoryStream].apply(stream)
-    val actual = outStream.vector
 
-    assert(actual == testCase.output)
+    val stream = MemoryStream.fromData(testCase.input)
+    val outStream = testCase.program[MemoryStream].apply(stream)
+    val actual = outStream.toData
+
+    implicit def dataOrder[T]: Order[Data[T]] = Order.whenEqual(Order.by(_.time.millis), Order.by(_.value.toString))
+    implicit def toOrdering[T: Order]: Ordering[T] = Order[T].toOrdering
+
+    assert(actual.sorted == testCase.output.sorted)
   }
 }

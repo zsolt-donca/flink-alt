@@ -3,7 +3,7 @@ package com.github.flinkalt.flink.helper
 import java.io.{IOException, OutputStream}
 import java.net.{InetAddress, Socket}
 
-import com.github.flinkalt.memory.Data
+import com.github.flinkalt.Data
 import com.github.flinkalt.time.Instant
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.configuration.Configuration

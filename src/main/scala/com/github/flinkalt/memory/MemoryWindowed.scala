@@ -3,12 +3,12 @@ package com.github.flinkalt.memory
 import cats.data.State
 import cats.instances.map._
 import cats.instances.vector._
-import cats.kernel.{Order, Semigroup}
+import cats.kernel.Semigroup
 import cats.syntax.semigroup._
 import cats.syntax.traverse._
 import com.github.flinkalt.Windowed.WindowMapper
 import com.github.flinkalt._
-import com.github.flinkalt.time.{Duration, Instant}
+import com.github.flinkalt.time._
 
 object MemoryWindowed extends Windowed[MemoryStream] {
 
@@ -17,22 +17,25 @@ object MemoryWindowed extends Windowed[MemoryStream] {
   }
 
   override def windowReduceMapped[K: TypeInfo, A: Semigroup, B: TypeInfo](fa: MemoryStream[A])(windowType: WindowType, key: A => K)(trigger: WindowMapper[K, A, B]): MemoryStream[B] = {
-    case class ReduceState(lastWatermark: Option[Instant], windows: Map[Window, Map[K, A]])
-    val trans: Data[A] => State[ReduceState, Vector[Data[B]]] = da => {
-      State { case ReduceState(lastWatermark, windows) =>
-        lastWatermark.filter(last => last > da.watermark).foreach(last => sys.error(s"Watermark moves backwards; last: $last, current: ${da.watermark}"))
+    case class ReduceState(lastWatermark: Instant, windows: Map[Window, Map[K, A]])
+    val trans: MemoryElem[A] => State[ReduceState, Vector[MemoryElem[B]]] = {
+      case MemoryData(time, value) =>
+        State { case ReduceState(lastWatermark, windows) =>
+          val wins = calculateWindows(time, windowType)
+          val updatedWindows = wins.map(win => win -> Map(key(value) -> value)).toMap
+          val newWindows = windows |+| updatedWindows
 
-        val wins = calculateWindows(da.time, windowType)
-        val k = key(da.value)
-        val updatedWindows = wins.map(win => win -> Map(k -> da.value)).toMap
-        val newWindows = windows |+| updatedWindows
-        val (results, remainingWindows) = triggerExpiredWindows(newWindows, da.watermark, trigger)
+          (ReduceState(lastWatermark, newWindows), Vector.empty)
+        }
 
-        (ReduceState(Some(da.watermark), remainingWindows), results)
-      }
+      case MemoryWatermark(watermark) =>
+        State { case ReduceState(lastWatermark, windows) =>
+          val (results, remainingWindows) = triggerExpiredWindows(windows, watermark, lastWatermark, trigger)
+          (ReduceState(watermark, remainingWindows), results)
+        }
     }
-    val (lastState, triggered) = fa.vector.flatTraverse(trans).run(ReduceState(None, Map.empty)).value
-    val finalResults = lastState.lastWatermark.map(watermark => triggerWindows(lastState.windows, trigger, watermark)).getOrElse(Vector.empty)
+    val (lastState, triggered) = fa.elems.flatTraverse(trans).run(ReduceState(Instant.minValue, Map.empty)).value
+    val finalResults = triggerWindows(lastState.windows, trigger, lastState.lastWatermark)
     val results = triggered ++ finalResults
     MemoryStream(results)
   }
@@ -50,15 +53,16 @@ object MemoryWindowed extends Windowed[MemoryStream] {
       .toVector
   }
 
-  private def triggerExpiredWindows[K, A, B](windows: Map[Window, Map[K, A]], watermark: Instant, trigger: (K, Window, A) => B): (Vector[Data[B]], Map[Window, Map[K, A]]) = {
+  private def triggerExpiredWindows[K, A, B](windows: Map[Window, Map[K, A]], watermark: Instant, lastWatermark: Instant, trigger: (K, Window, A) => B): (Vector[MemoryElem[B]], Map[Window, Map[K, A]]) = {
     val (triggered, remaining) = windows.partition({ case (w, _) => w.end <= watermark })
-    val bs = triggerWindows(triggered, trigger, watermark)
+    val bs = triggerWindows(triggered, trigger, lastWatermark)
     (bs, remaining)
   }
 
-  private def triggerWindows[B, A, K](triggered: Map[Window, Map[K, A]], trigger: (K, Window, A) => B, watermark: Instant): Vector[Data[B]] = {
-    val results = triggered.flatMap({ case (win, values) => values.map({ case (k, a) => Data(win.end, Order.max(watermark, win.end), trigger(k, win, a)) }) }).toVector
-    results.sortBy(_.time.millis)
+  private def triggerWindows[B, A, K](triggered: Map[Window, Map[K, A]], trigger: (K, Window, A) => B, watermark: Instant): Vector[MemoryElem[B]] = {
+    val memData = triggered.flatMap({ case (win, values) => values.map({ case (k, a) => MemoryData(win.end - (1 milli), trigger(k, win, a)) }) }).toVector
+    val memWm = MemoryWatermark(watermark)
+    memWm +: memData.sortBy(_.time.millis)
   }
 
   private def ceil(time: Instant, size: Duration): Instant = {

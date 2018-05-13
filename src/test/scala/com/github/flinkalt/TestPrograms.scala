@@ -4,12 +4,12 @@ import cats.data.State
 import cats.instances.int._
 import cats.instances.list._
 import cats.kernel.Semigroup
-import com.github.flinkalt.memory.Data
 import com.github.flinkalt.time._
 import org.apache.flink.api.scala._
 
 case class Count[T](value: T, count: Int)
 object Count {
+  //noinspection ConvertExpressionToSAM
   implicit def countSemigroup[T]: Semigroup[Count[T]] = new Semigroup[Count[T]] {
     override def combine(x: Count[T], y: Count[T]): Count[T] = Count(y.value, x.count + y.count)
   }

@@ -1,7 +1,9 @@
 package com.github.flinkalt
 
+import cats.Order
+import cats.instances.long._
+import cats.instances.string._
 import com.github.flinkalt.flink.helper._
-import com.github.flinkalt.memory.Data
 import org.apache.flink.streaming.api.TimeCharacteristic.EventTime
 import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks
 import org.apache.flink.streaming.api.scala._
@@ -46,7 +48,11 @@ class FlinkDataStreamTest extends FunSuite {
     env.execute()
 
     val actual = collector.toVector
-    assert(actual == testCase.output)
+
+    implicit def dataOrder[T]: Order[Data[T]] = Order.whenEqual(Order.by(_.time.millis), Order.by(_.value.toString))
+    implicit def toOrdering[T: Order]: Ordering[T] = Order[T].toOrdering
+
+    assert(actual.sorted == testCase.output.sorted)
   }
 
   private def createSource[A: TypeInfo](env: StreamExecutionEnvironment, vector: Vector[Data[A]]): DataStream[A] = {
