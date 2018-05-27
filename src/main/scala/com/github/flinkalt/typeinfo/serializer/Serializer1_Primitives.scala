@@ -1,5 +1,6 @@
 package com.github.flinkalt.typeinfo.serializer
 
+import java.io.{DataInput, DataOutput}
 import java.math.BigInteger
 
 
@@ -22,14 +23,18 @@ trait Serializer1_Primitives extends Serializer2_CommonTypes {
 
   implicit def unitSerializer: Serializer[Unit] = ValueSerializer((_, _) => {}, _ => ())
 
-  implicit def bigIntSerializer: Serializer[BigInt] = ValueSerializer[BigInt]((out, t) => {
-    val bytes = t.toByteArray
-    out.writeInt(bytes.length)
-    out.write(bytes)
-  }, in => {
-    val length = in.readInt()
-    val bytes = new Array[Byte](length)
-    in.readFully(bytes)
-    BigInt(new BigInteger(bytes))
-  })
+  implicit def bigIntSerializer: Serializer[BigInt] = new ValueSerializer[BigInt] {
+    override def serializeNewValue(t: BigInt, out: DataOutput, state: SerializationState): Unit = {
+      val bytes = t.toByteArray
+      out.writeInt(bytes.length)
+      out.write(bytes)
+    }
+
+    override def deserializeNewValue(in: DataInput, state: DeserializationState): BigInt = {
+      val length = in.readInt()
+      val bytes = new Array[Byte](length)
+      in.readFully(bytes)
+      BigInt(new BigInteger(bytes))
+    }
+  }
 }

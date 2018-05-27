@@ -1,4 +1,4 @@
-package com.github.flinkalt.typeinfo.serializer
+package com.github.flinkalt.typeinfo
 
 trait Injection[A, B] {
   def apply(a: A): B

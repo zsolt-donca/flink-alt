@@ -1,6 +1,6 @@
 package com.github.flinkalt.typeinfo.desc
 
-import com.github.flinkalt.typeinfo.serializer.Injection
+import com.github.flinkalt.typeinfo.Injection
 import org.scalatest.{FunSuite, Inside, Matchers}
 
 class TypeDescTest extends FunSuite with Matchers with Inside {

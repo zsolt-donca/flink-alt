@@ -12,7 +12,7 @@ trait Serializer[T] extends Serializable {
   def deserializeNewValue(dataInput: DataInput, state: DeserializationState): T
 }
 
-object Serializer extends SerializerInstances {
+object Serializer extends Serializer1_Primitives {
   type RefId = Int
 }
 
