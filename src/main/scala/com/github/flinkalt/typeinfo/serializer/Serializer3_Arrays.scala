@@ -17,4 +17,6 @@ trait Serializer3_Arrays extends Serializer4_Collections {
       array
     }
   }
+
+  // TODO add further array types, such as Long
 }
