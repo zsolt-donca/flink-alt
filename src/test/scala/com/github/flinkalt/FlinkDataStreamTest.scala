@@ -3,16 +3,17 @@ package com.github.flinkalt
 import cats.Order
 import cats.instances.long._
 import cats.instances.string._
+import com.github.flinkalt.flink._
 import com.github.flinkalt.flink.helper._
+import com.github.flinkalt.typeinfo._
 import org.apache.flink.streaming.api.TimeCharacteristic.EventTime
 import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.watermark.Watermark
 import org.scalatest.FunSuite
 
-class FlinkDataStreamTest extends FunSuite {
 
-  import com.github.flinkalt.flink._
+class FlinkDataStreamTest extends FunSuite {
 
   test("Number Juggling") {
     runTestCase(TestPrograms.numberJugglingTestCase)

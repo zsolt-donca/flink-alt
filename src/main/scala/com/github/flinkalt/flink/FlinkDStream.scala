@@ -1,6 +1,8 @@
 package com.github.flinkalt.flink
 
-import com.github.flinkalt.{DStream, TypeInfo}
+import com.github.flinkalt.DStream
+import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.auto._
 import org.apache.flink.streaming.api.scala.DataStream
 
 object FlinkDStream extends DStream[DataStream] {

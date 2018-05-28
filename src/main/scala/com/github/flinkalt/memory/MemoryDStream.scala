@@ -1,7 +1,8 @@
 package com.github.flinkalt.memory
 
 import cats.syntax.functor._
-import com.github.flinkalt.{DStream, TypeInfo}
+import com.github.flinkalt.DStream
+import com.github.flinkalt.typeinfo.TypeInfo
 
 object MemoryDStream extends DStream[MemoryStream] {
   override def map[A, B: TypeInfo](fa: MemoryStream[A])(f: A => B): MemoryStream[B] = {

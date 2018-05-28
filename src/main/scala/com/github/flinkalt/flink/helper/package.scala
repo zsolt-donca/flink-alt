@@ -1,6 +1,7 @@
 package com.github.flinkalt.flink
 
-import com.github.flinkalt.{Data, TypeInfo}
+import com.github.flinkalt.Data
+import com.github.flinkalt.typeinfo.TypeInfo
 import org.apache.flink.streaming.api.scala.DataStream
 
 package object helper {

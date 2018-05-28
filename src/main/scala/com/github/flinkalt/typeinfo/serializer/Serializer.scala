@@ -2,6 +2,8 @@ package com.github.flinkalt.typeinfo.serializer
 
 import java.io.{DataInput, DataOutput}
 
+import cats.Invariant
+
 trait Serializer[T] extends Serializable {
   def serialize(value: T, dataOutput: DataOutput, state: SerializationState): Unit
 
@@ -14,6 +16,28 @@ trait Serializer[T] extends Serializable {
 
 object Serializer extends Serializer1_Primitives {
   type RefId = Int
+
+  def apply[T](implicit serializer: Serializer[T]): Serializer[T] = serializer
+
+  implicit def invariantSerializer[T]: Invariant[Serializer] = new Invariant[Serializer] {
+    override def imap[A, B](fa: Serializer[A])(to: A => B)(from: B => A): Serializer[B] = new Serializer[B] {
+      override def serialize(value: B, dataOutput: DataOutput, state: SerializationState): Unit = {
+        fa.serialize(from(value), dataOutput, state)
+      }
+
+      override def deserialize(dataInput: DataInput, state: DeserializationState): B = {
+        to(fa.deserialize(dataInput, state))
+      }
+
+      override def serializeNewValue(value: B, dataOutput: DataOutput, state: SerializationState): Unit = {
+        fa.serializeNewValue(from(value), dataOutput, state)
+      }
+
+      override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): B = {
+        to(fa.deserializeNewValue(dataInput, state))
+      }
+    }
+  }
 }
 
 trait RefSerializer[T] extends Serializer[T] {

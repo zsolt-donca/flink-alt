@@ -51,7 +51,7 @@ lazy val commonSettings = Seq(
     "-language:postfixOps",
     "-Ywarn-dead-code",
     "-Ywarn-unused",
-    "-Ywarn-unused-import",
+    //    "-Ywarn-unused-import",
     "-Ypartial-unification",
     "-Xfatal-warnings",
     "-Xfuture",

@@ -1,6 +1,8 @@
 package com.github.flinkalt.flink
 
-import com.github.flinkalt.{StateTrans, Stateful, TypeInfo}
+import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.auto._
+import com.github.flinkalt.{StateTrans, Stateful}
 import org.apache.flink.streaming.api.scala.DataStream
 
 object FlinkStateful extends Stateful[DataStream] {

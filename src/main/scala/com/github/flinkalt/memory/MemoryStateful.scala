@@ -3,7 +3,8 @@ package com.github.flinkalt.memory
 import cats.data.State
 import cats.instances.vector._
 import cats.syntax.traverse._
-import com.github.flinkalt.{StateTrans, Stateful, TypeInfo}
+import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.{StateTrans, Stateful}
 
 object MemoryStateful extends Stateful[MemoryStream] {
   override def mapWithState[K: TypeInfo, S: TypeInfo, A, B: TypeInfo](f: MemoryStream[A])(stateTrans: StateTrans[K, S, A, B]): MemoryStream[B] = {

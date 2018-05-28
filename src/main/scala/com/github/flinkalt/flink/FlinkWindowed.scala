@@ -4,6 +4,8 @@ import cats.kernel.Semigroup
 import com.github.flinkalt.Windowed.WindowMapper
 import com.github.flinkalt._
 import com.github.flinkalt.time.Instant
+import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.auto._
 import org.apache.flink.streaming.api.scala.DataStream
 import org.apache.flink.streaming.api.windowing.assigners.{SlidingEventTimeWindows, TumblingEventTimeWindows, WindowAssigner}
 import org.apache.flink.streaming.api.windowing.time.Time

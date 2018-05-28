@@ -1,8 +1,8 @@
 package com.github.flinkalt
 
 import cats.kernel.Semigroup
-import com.github.flinkalt.Windowed.WindowMapper
 import com.github.flinkalt.time.{Duration, Instant}
+import com.github.flinkalt.typeinfo.TypeInfo
 import simulacrum.typeclass
 
 @typeclass

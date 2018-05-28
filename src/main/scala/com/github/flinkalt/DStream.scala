@@ -2,6 +2,7 @@ package com.github.flinkalt
 
 import cats.Functor
 import com.github.flinkalt.time.Instant
+import com.github.flinkalt.typeinfo.TypeInfo
 import simulacrum.typeclass
 
 case class Data[+T](time: Instant, watermark: Instant, value: T)

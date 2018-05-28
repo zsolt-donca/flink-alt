@@ -1,6 +1,7 @@
 package com.github.flinkalt
 
 import cats.data.State
+import com.github.flinkalt.typeinfo.TypeInfo
 import simulacrum.typeclass
 
 @typeclass

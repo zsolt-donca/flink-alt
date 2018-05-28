@@ -4,6 +4,7 @@ import cats.Order
 import cats.instances.long._
 import cats.instances.string._
 import com.github.flinkalt.memory.MemoryStream
+import com.github.flinkalt.typeinfo.TypeInfo
 import org.scalatest.FunSuite
 
 class MemoryStreamTest extends FunSuite {

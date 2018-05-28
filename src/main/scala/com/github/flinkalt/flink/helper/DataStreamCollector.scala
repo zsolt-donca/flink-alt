@@ -3,7 +3,8 @@ package com.github.flinkalt.flink.helper
 import java.io.IOException
 import java.net.{InetAddress, InetSocketAddress, UnknownHostException}
 
-import com.github.flinkalt.{Data, TypeInfo}
+import com.github.flinkalt.Data
+import com.github.flinkalt.typeinfo.TypeInfo
 import org.apache.flink.runtime.net.ConnectionUtils
 import org.apache.flink.streaming.api.environment.{LocalStreamEnvironment, RemoteStreamEnvironment}
 import org.apache.flink.streaming.api.scala._
@@ -39,7 +40,7 @@ class DataStreamCollector {
 
     val dataTypeInfo = implicitly[TypeInfo[Data[T]]]
 
-    val serializer = dataTypeInfo.createSerializer(stream.executionEnvironment.getConfig)
+    val serializer = dataTypeInfo.flinkTypeInfo.createSerializer(stream.executionEnvironment.getConfig)
     val streamIterator = new SocketStreamIterator[Data[T]](serializer)
     val sink = stream.addSink(new CollectSink[T](clientAddress, streamIterator.getPort, serializer))
     sink.setParallelism(1) // It would not work if multiple instances would connect to the same port

@@ -5,7 +5,6 @@ import cats.instances.int._
 import cats.instances.list._
 import cats.kernel.Semigroup
 import com.github.flinkalt.time._
-import org.apache.flink.api.scala._
 
 case class Count[T](value: T, count: Int)
 object Count {

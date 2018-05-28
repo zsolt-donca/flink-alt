@@ -9,6 +9,7 @@ import cats.syntax.traverse._
 import com.github.flinkalt.Windowed.WindowMapper
 import com.github.flinkalt._
 import com.github.flinkalt.time._
+import com.github.flinkalt.typeinfo.TypeInfo
 
 object MemoryWindowed extends Windowed[MemoryStream] {
 
