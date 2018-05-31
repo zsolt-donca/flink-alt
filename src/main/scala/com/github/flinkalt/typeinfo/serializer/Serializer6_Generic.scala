@@ -12,7 +12,7 @@ trait Serializer6_Generic {
     override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): HNil = HNil
   }
 
-  def hlistSerializer[H, T <: HList](headSer: Serializer[H], tailSer: => Serializer[T]): Serializer[H :: T] = new ValueSerializer[H :: T] {
+  def hlistSerializer[H, T <: HList](headSer: => Serializer[H], tailSer: => Serializer[T]): Serializer[H :: T] = new ValueSerializer[H :: T] {
     override def serializeNewValue(value: H :: T, dataOutput: DataOutput, state: SerializationState): Unit = {
       value match {
         case head :: tail =>
@@ -39,7 +39,7 @@ trait Serializer6_Generic {
     }
   }
 
-  def coproductSerializer[H, T <: Coproduct](headSer: Serializer[H], tailSer: => Serializer[T]): Serializer[H :+: T] = new ValueSerializer[H :+: T] {
+  def coproductSerializer[H, T <: Coproduct](headSer: => Serializer[H], tailSer: => Serializer[T]): Serializer[H :+: T] = new ValueSerializer[H :+: T] {
     override def serializeNewValue(value: H :+: T, dataOutput: DataOutput, state: SerializationState): Unit = {
       value match {
         case Inl(head) =>
@@ -65,7 +65,7 @@ trait Serializer6_Generic {
   }
 
 
-  def genericEncoder[A, R](gen: Generic.Aux[A, R], ser: Serializer[R]): Serializer[A] = new RefSerializer[A] {
+  def genericSerializer[A, R](gen: Generic.Aux[A, R], ser: Serializer[R]): Serializer[A] = new RefSerializer[A] {
     override def serializeNewValue(value: A, dataOutput: DataOutput, state: SerializationState): Unit = {
       val r = gen.to(value)
       ser.serializeNewValue(r, dataOutput, state)

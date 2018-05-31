@@ -5,7 +5,7 @@ import java.io.{DataInput, DataOutput}
 import com.github.flinkalt.typeinfo.Injection
 
 trait Serializer5_Injections extends Serializer6_Generic {
-  implicit def injectSerializer[T, U](implicit inj: Injection[T, U], ser: Serializer[U]): Serializer[T] = new RefSerializer[T] {
+  def injectSerializer[T, U](inj: Injection[T, U], ser: Serializer[U]): Serializer[T] = new RefSerializer[T] {
     override def serializeNewValue(value: T, dataOutput: DataOutput, state: SerializationState): Unit = {
       ser.serialize(inj(value), dataOutput, state)
     }

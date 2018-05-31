@@ -17,8 +17,6 @@ trait Serializer[T] extends Serializable {
 object Serializer extends Serializer1_Primitives {
   type RefId = Int
 
-  def apply[T](implicit serializer: Serializer[T]): Serializer[T] = serializer
-
   implicit def invariantSerializer[T]: Invariant[Serializer] = new Invariant[Serializer] {
     override def imap[A, B](fa: Serializer[A])(to: A => B)(from: B => A): Serializer[B] = new Serializer[B] {
       override def serialize(value: B, dataOutput: DataOutput, state: SerializationState): Unit = {

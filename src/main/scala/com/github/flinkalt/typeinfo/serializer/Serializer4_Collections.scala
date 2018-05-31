@@ -7,7 +7,7 @@ import scala.language.higherKinds
 
 trait Serializer4_Collections extends Serializer5_Injections {
 
-  implicit def traversableSerializer[C[e] <: Traversable[e], T](implicit cb: CanBuild[T, C[T]], ser: Serializer[T]): Serializer[C[T]] = new RefSerializer[C[T]] {
+  def traversableSerializer[C[e] <: Traversable[e], T](ser: Serializer[T])(implicit cb: CanBuild[T, C[T]]): Serializer[C[T]] = new RefSerializer[C[T]] {
     override def serializeNewValue(value: C[T], dataOutput: DataOutput, state: SerializationState): Unit = {
       dataOutput.writeInt(value.size)
       value.foreach(t => ser.serialize(t, dataOutput, state))
@@ -25,7 +25,7 @@ trait Serializer4_Collections extends Serializer5_Injections {
     }
   }
 
-  implicit def mapSerializer[C[k, v] <: Map[k, v], K, V](implicit cb: CanBuild[(K, V), C[K, V]], ks: Serializer[K], vs: Serializer[V]): Serializer[C[K, V]] = new RefSerializer[C[K, V]] {
+  def mapSerializer[C[k, v] <: Map[k, v], K, V](ks: Serializer[K], vs: Serializer[V])(implicit cb: CanBuild[(K, V), C[K, V]]): Serializer[C[K, V]] = new RefSerializer[C[K, V]] {
     override def serializeNewValue(value: C[K, V], dataOutput: DataOutput, state: SerializationState): Unit = {
       dataOutput.writeInt(value.size)
       value.foreach({

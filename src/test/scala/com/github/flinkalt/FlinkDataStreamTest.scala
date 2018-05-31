@@ -6,6 +6,7 @@ import cats.instances.string._
 import com.github.flinkalt.flink._
 import com.github.flinkalt.flink.helper._
 import com.github.flinkalt.typeinfo._
+import com.github.flinkalt.typeinfo.auto._
 import org.apache.flink.streaming.api.TimeCharacteristic.EventTime
 import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks
 import org.apache.flink.streaming.api.scala._

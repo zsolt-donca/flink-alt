@@ -2,6 +2,8 @@ package com.github.flinkalt.typeinfo.serializer
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
+import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.auto._
 import org.scalacheck.Arbitrary
 import org.scalacheck.ScalacheckShapeless._
 import org.scalatest.PropSpec
@@ -48,14 +50,14 @@ class PrimitiveSerializerTest extends PropSpec with GeneratorDrivenPropertyCheck
     forAllRoundTrip[Unit]()
   }
 
-  def forAllRoundTrip[T <: AnyVal : ClassTag : Serializer : Arbitrary](): Unit = {
+  def forAllRoundTrip[T <: AnyVal : ClassTag : TypeInfo : Arbitrary](): Unit = {
     forAll { value: T =>
       roundTrip(value)
     }
   }
 
-  private def roundTrip[T <: AnyVal : ClassTag : Serializer : Arbitrary](value: T): Unit = {
-    val ser = implicitly[Serializer[T]]
+  private def roundTrip[T <: AnyVal : ClassTag : TypeInfo : Arbitrary](value: T): Unit = {
+    val ser = TypeInfo[T].serializer
     val bos = new ByteArrayOutputStream()
     val dataOutput = new DataOutputStream(bos)
     val state = new SerializationState
