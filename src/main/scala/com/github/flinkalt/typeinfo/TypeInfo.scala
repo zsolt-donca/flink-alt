@@ -6,7 +6,9 @@ import org.apache.flink.api.common.typeinfo.BasicTypeInfo.getInfoFor
 import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, PrimitiveArrayTypeInfo, TypeInformation}
 import shapeless.{:+:, ::, CNil, Coproduct, Generic, HList, HNil, Lazy}
 
-import scala.collection.generic.CanBuild
+import scala.collection.generic.CanBuildFrom
+import scala.collection.immutable.ListMap
+import scala.collection.mutable
 import scala.reflect.ClassTag
 
 abstract class TypeInfo[T] extends Serializable {
@@ -57,18 +59,56 @@ trait TypeInfo3_Arrays extends TypeInfo4_Collections {
   implicit def byteArrayTypeInfo: TypeInfo[Array[Byte]] = TypeInfo.fromFlinkTypeInformation(PrimitiveArrayTypeInfo.BYTE_PRIMITIVE_ARRAY_TYPE_INFO, Serializer.byteArraySerializer)
 }
 
+// workaround to make the collection-related type information instances serializable
+trait SerializableCanBuildFrom[-From, -Elem, +To] extends CanBuildFrom[From, Elem, To] with Serializable
+
+object SerializableCanBuildFrom extends SerializableCanBuildFrom_Lower {
+  implicit def listSerializableCanBuildFrom[T]: SerializableCanBuildFrom[List[T], T, List[T]] =
+    new SerializableCanBuildFrom[List[T], T, List[T]] {
+      override def apply(from: List[T]): mutable.Builder[T, List[T]] = from.genericBuilder[T]
+
+      override def apply(): mutable.Builder[T, List[T]] = List.newBuilder[T]
+    }
+
+  implicit def vectorSerializableCanBuildFrom[T]: SerializableCanBuildFrom[Vector[T], T, Vector[T]] =
+    new SerializableCanBuildFrom[Vector[T], T, Vector[T]] {
+      override def apply(from: Vector[T]): mutable.Builder[T, Vector[T]] = from.genericBuilder[T]
+
+      override def apply(): mutable.Builder[T, Vector[T]] = Vector.newBuilder[T]
+    }
+
+  implicit def listMapSerializableCanBuildFrom[K, V]: SerializableCanBuildFrom[ListMap[K, V], (K, V), ListMap[K, V]] =
+    new SerializableCanBuildFrom[ListMap[K, V], (K, V), ListMap[K, V]] {
+
+      override def apply(from: ListMap[K, V]): mutable.Builder[(K, V), ListMap[K, V]] = from.genericBuilder[(K, V)].asInstanceOf[mutable.Builder[(K, V), ListMap[K, V]]]
+
+      override def apply(): mutable.Builder[(K, V), ListMap[K, V]] = ListMap.newBuilder[K, V]
+    }
+}
+
+trait SerializableCanBuildFrom_Lower {
+  implicit def mapSerializableCanBuildFrom[K, V]: SerializableCanBuildFrom[Map[K, V], (K, V), Map[K, V]] =
+    new SerializableCanBuildFrom[Map[K, V], (K, V), Map[K, V]] {
+
+      override def apply(from: Map[K, V]): mutable.Builder[(K, V), Map[K, V]] = from.genericBuilder[(K, V)].asInstanceOf[mutable.Builder[(K, V), Map[K, V]]]
+
+      override def apply(): mutable.Builder[(K, V), Map[K, V]] = Map.newBuilder[K, V]
+    }
+}
+
 trait TypeInfo4_Collections extends TypeInfo5_Injections {
-  implicit def traversableTypeInfo[C[e] <: Traversable[e], T](implicit typeInfo: TypeInfo[T], cb: CanBuild[T, C[T]], tag: ClassTag[C[T]]): TypeInfo[C[T]] = new SerializerBasedTypeInfo[C[T]] {
+
+  implicit def traversableTypeInfo[C[e] <: Traversable[e], T](implicit typeInfo: TypeInfo[T], cb: SerializableCanBuildFrom[Nothing, T, C[T]], tag: ClassTag[C[T]]): TypeInfo[C[T]] = new SerializerBasedTypeInfo[C[T]] {
     override def serializer: Serializer[C[T]] = Serializer.traversableSerializer(typeInfo.serializer)
   }
 
-  implicit def mapTypeInfo[C[k, v] <: Map[k, v], K, V](implicit kti: TypeInfo[K], vti: TypeInfo[V], cb: CanBuild[(K, V), C[K, V]], tag: ClassTag[C[K, V]]): TypeInfo[C[K, V]] = new SerializerBasedTypeInfo[C[K, V]]() {
+  implicit def mapTypeInfo[C[k, v] <: Map[k, v], K, V](implicit kti: TypeInfo[K], vti: TypeInfo[V], cb: SerializableCanBuildFrom[Nothing, (K, V), C[K, V]], tag: ClassTag[C[K, V]]): TypeInfo[C[K, V]] = new SerializerBasedTypeInfo[C[K, V]]() {
     override def serializer: Serializer[C[K, V]] = Serializer.mapSerializer(kti.serializer, vti.serializer)
   }
 }
 
 trait TypeInfo5_Injections extends TypeInfo6_Generic {
-  implicit def injectionTypeInfo[T: ClassTag, U](inj: Injection[T, U], typeInfo: TypeInfo[U]): TypeInfo[T] = new SerializerBasedTypeInfo[T]() {
+  implicit def injectionTypeInfo[T: ClassTag, U](implicit inj: Injection[T, U], typeInfo: TypeInfo[U]): TypeInfo[T] = new SerializerBasedTypeInfo[T]() {
     override def serializer: Serializer[T] = Serializer.injectSerializer(inj, typeInfo.serializer)
   }
 }
