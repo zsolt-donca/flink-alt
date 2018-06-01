@@ -1,10 +1,9 @@
 package com.github.flinkalt.typeinfo
 
-import cats.syntax.invariant._
 import com.github.flinkalt.typeinfo.serializer.Serializer
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo.getInfoFor
 import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, PrimitiveArrayTypeInfo, TypeInformation}
-import shapeless.{:+:, ::, CNil, Coproduct, Generic, HList, HNil, Lazy}
+import shapeless.{Generic, Lazy}
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.ListMap
@@ -118,23 +117,7 @@ trait TypeInfo5_Injections extends TypeInfo6_Generic {
 }
 
 trait TypeInfo6_Generic {
-  implicit def hnilTypeInfo: TypeInfo[HNil] = new SerializerBasedTypeInfo[HNil] {
-    override def serializer: Serializer[HNil] = Serializer.unitSerializer.imap[HNil](_ => HNil)(_ => ())
-  }
-
-  implicit def hlistTypeInfo[H, T <: HList](implicit head: Lazy[TypeInfo[H]], tail: TypeInfo[T]): TypeInfo[H :: T] = new SerializerBasedTypeInfo[H :: T] {
-    override def serializer: Serializer[H :: T] = Serializer.hlistSerializer(head.value.serializer, tail.serializer)
-  }
-
-  implicit def cnilTypeInfo: TypeInfo[CNil] = new SerializerBasedTypeInfo[CNil] {
-    override def serializer: Serializer[CNil] = Serializer.cnilSerializer
-  }
-
-  implicit def coproductSerializer[H, T <: Coproduct](implicit head: Lazy[TypeInfo[H]], tail: TypeInfo[T]): TypeInfo[H :+: T] = new SerializerBasedTypeInfo[H :+: T] {
-    override def serializer: Serializer[H :+: T] = Serializer.coproductSerializer(head.value.serializer, tail.serializer)
-  }
-
-  implicit def genericEncoder[A: ClassTag, R](implicit gen: Generic.Aux[A, R], typeInfo: Lazy[TypeInfo[R]]): TypeInfo[A] = new SerializerBasedTypeInfo[A] {
-    override def serializer: Serializer[A] = Serializer.genericSerializer(gen, typeInfo.value.serializer)
+  implicit def genericEncoder[A: ClassTag, R](implicit gen: Generic.Aux[A, R], genTypeInfo: Lazy[GenTypeInfo[R]]): TypeInfo[A] = new SerializerBasedTypeInfo[A] {
+    override def serializer: Serializer[A] = Serializer.genericSerializer(gen, genTypeInfo.value.typeInfo.serializer)
   }
 }
