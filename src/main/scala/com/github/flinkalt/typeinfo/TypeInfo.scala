@@ -53,6 +53,10 @@ trait TypeInfo1_Primitives extends TypeInfo2_Common {
 
 trait TypeInfo2_Common extends TypeInfo3_Arrays {
   implicit def stringTypeInfo: TypeInfo[String] = TypeInfo.fromFlinkTypeInformation(BasicTypeInfo.STRING_TYPE_INFO, Serializer.stringSerializer)
+
+  implicit def optionTypeInfo[T: TypeInfo]: TypeInfo[Option[T]] = new SerializerBasedTypeInfo[Option[T]]() {
+    override def serializer: Serializer[Option[T]] = Serializer.optionSerializer(TypeInfo[T].serializer)
+  }
 }
 
 trait TypeInfo3_Arrays extends TypeInfo4_Collections {
