@@ -1,5 +1,6 @@
 package com.github.flinkalt.typeinfo
 
+import cats.data.Validated
 import com.github.flinkalt.typeinfo.serializer.Serializer
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo.getInfoFor
 import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, PrimitiveArrayTypeInfo, TypeInformation}
@@ -86,6 +87,18 @@ trait TypeInfo2_Common extends TypeInfo3_Arrays {
     override def serializer: Serializer[Option[T]] = Serializer.optionSerializer(TypeInfo[T].serializer)
 
     override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(TypeInfo[T])
+  }
+
+  implicit def eitherTypeInfo[E: TypeInfo, T: TypeInfo]: TypeInfo[Either[E, T]] = new SerializerBasedTypeInfo[Either[E, T]]() {
+    override def serializer: Serializer[Either[E, T]] = Serializer.eitherSerializer(TypeInfo[E].serializer, TypeInfo[T].serializer)
+
+    override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(TypeInfo[E], TypeInfo[T])
+  }
+
+  implicit def validatedTypeInfo[E: TypeInfo, T: TypeInfo]: TypeInfo[Validated[E, T]] = new SerializerBasedTypeInfo[Validated[E, T]]() {
+    override def serializer: Serializer[Validated[E, T]] = Serializer.validatedSerializer(TypeInfo[E].serializer, TypeInfo[T].serializer)
+
+    override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(TypeInfo[E], TypeInfo[T])
   }
 }
 
