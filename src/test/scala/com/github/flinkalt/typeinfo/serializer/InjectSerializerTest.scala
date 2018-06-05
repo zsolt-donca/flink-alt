@@ -33,7 +33,7 @@ class InjectSerializerTest extends PropSpec with RefSerializerHelper {
   }
 
   implicit val injectStringPairToString: Injection[StringPair, String] = new Injection[StringPair, String] {
-    val pattern: Regex = "(\\d+) (\\d+) (.*)".r
+    val pattern: Regex = "(?s)(\\d+) (\\d+) (.*)".r
     override def apply(a: StringPair): String = {
       s"${a.s1.length} ${a.s2.length} ${a.s1}${a.s2}"
     }
@@ -42,6 +42,9 @@ class InjectSerializerTest extends PropSpec with RefSerializerHelper {
       b match {
         case pattern(size1, size2, concatenated) =>
           new StringPair(concatenated.substring(0, size1.toInt), concatenated.substring(size1.toInt, size1.toInt + size2.toInt))
+
+        case _ =>
+          sys.error(s"String does not match pattern: $b")
       }
     }
   }

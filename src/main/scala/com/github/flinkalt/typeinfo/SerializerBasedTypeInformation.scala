@@ -15,14 +15,11 @@
  */
 package com.github.flinkalt.typeinfo
 
-import com.github.flinkalt.typeinfo.serializer.Serializer
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 
-import scala.reflect.ClassTag
-
-class SerializerBasedTypeInformation[P](private val serializer: Serializer[P], private val tag: ClassTag[P])
+class SerializerBasedTypeInformation[P](private val typeInfo: TypeInfo[P])
   extends TypeInformation[P] {
 
   def isBasicType: Boolean = false
@@ -36,21 +33,24 @@ class SerializerBasedTypeInformation[P](private val serializer: Serializer[P], p
   def getTotalFields: Int = getArity
 
   def getTypeClass: Class[P] =
-    tag.runtimeClass.asInstanceOf[Class[P]]
+    typeInfo.tag.runtimeClass.asInstanceOf[Class[P]]
 
-  def createSerializer(config: ExecutionConfig): TypeSerializer[P] = new SerializerBasedTypeSerializer[P](serializer)
+  def createSerializer(config: ExecutionConfig): TypeSerializer[P] = new SerializerBasedTypeSerializer[P](typeInfo.serializer)
 
   def canEqual(that: Any): Boolean =
     that.isInstanceOf[SerializerBasedTypeInformation[_]]
 
   override def equals(other: Any): Boolean = other match {
     case that: SerializerBasedTypeInformation[_] =>
-      (this eq that) || (that canEqual this) && this.serializer == that.serializer
+      (that canEqual this) &&
+        typeInfo == that.typeInfo
     case _ => false
   }
 
-  override def hashCode: Int =
-    serializer.##
+  override def hashCode(): Int = {
+    val state = Seq(typeInfo)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 
-  override def toString: String = s"${getTypeClass.getTypeName}"
+  override def toString: String = s"TypeInfo[${getTypeClass.getTypeName}]"
 }
