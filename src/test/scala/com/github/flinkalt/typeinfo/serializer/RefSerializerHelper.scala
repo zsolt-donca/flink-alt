@@ -3,6 +3,7 @@ package com.github.flinkalt.typeinfo.serializer
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
 import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.auto._
 import org.scalacheck.{Arbitrary, ScalacheckShapeless}
 import org.scalatest.Assertions
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
@@ -25,18 +26,18 @@ trait RefSerializerHelper extends GeneratorDrivenPropertyChecks with Assertions 
     }
   }
 
-  def roundTripWithSerializer[T <: AnyRef : TypeInfo : Arbitrary](value: T): T = {
+  def roundTripWithSerializer[T <: AnyRef : TypeInfo](value: T): T = {
     val typeInfo = TypeInfo[T]
     val ser = typeInfo.serializer
     val bos = new ByteArrayOutputStream()
     val dataOutput = new DataOutputStream(bos)
     val state = new SerializationState
-    ser.serialize(value, dataOutput, state)
+    ser.serialize(value, dataOutput, state)(typeInfo.tag)
 
     val bytes = bos.toByteArray
     val bis = new ByteArrayInputStream(bytes)
     val dataInput = new DataInputStream(bis)
-    val copy = ser.deserialize(dataInput, new DeserializationState)
+    val copy = ser.deserialize(dataInput, new DeserializationState)(typeInfo.tag)
 
     (value, copy) match {
       case (valueArray: Array[_], copyArray: Array[_]) =>

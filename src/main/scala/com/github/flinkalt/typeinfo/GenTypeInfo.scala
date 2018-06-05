@@ -1,6 +1,5 @@
 package com.github.flinkalt.typeinfo
 
-import cats.syntax.invariant._
 import com.github.flinkalt.typeinfo.serializer.Serializer
 import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Lazy}
 
@@ -22,7 +21,7 @@ object GenTypeInfo {
 
   implicit def hlistTypeInfo[H, T <: HList](implicit head: Lazy[TypeInfo[H]], tail: GenTypeInfo[T]): GenTypeInfo[H :: T] = new GenTypeInfo[::[H, T]] {
     override def typeInfo: TypeInfo[H :: T] = new SerializerBasedTypeInfo[H :: T] {
-      override def serializer: Serializer[H :: T] = Serializer.hlistSerializer(head.value.serializer, tail.typeInfo.serializer)
+      override def serializer: Serializer[H :: T] = Serializer.hlistSerializer(head.value, tail.typeInfo)
 
       override def nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq(head.value, tail.typeInfo)
     }
@@ -38,7 +37,7 @@ object GenTypeInfo {
 
   implicit def coproductSerializer[H, T <: Coproduct](implicit head: Lazy[TypeInfo[H]], tail: GenTypeInfo[T]): GenTypeInfo[H :+: T] = new GenTypeInfo[H :+: T] {
     override def typeInfo: TypeInfo[H :+: T] = new SerializerBasedTypeInfo[H :+: T] {
-      override def serializer: Serializer[H :+: T] = Serializer.coproductSerializer(head.value.serializer, tail.typeInfo.serializer)
+      override def serializer: Serializer[H :+: T] = Serializer.coproductSerializer(head.value, tail.typeInfo)
 
       override def nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq(head.value, tail.typeInfo)
     }

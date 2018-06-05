@@ -4,16 +4,17 @@ import java.io.{DataInput, DataOutput}
 
 import scala.collection.generic.CanBuild
 import scala.language.higherKinds
+import scala.reflect.ClassTag
 
 trait Serializer4_Collections extends Serializer5_Injections {
 
-  def traversableSerializer[C[e] <: Traversable[e], T](ser: Serializer[T])(implicit cb: CanBuild[T, C[T]]): Serializer[C[T]] = new RefSerializer[C[T]] {
-    override def serializeNewValue(value: C[T], dataOutput: DataOutput, state: SerializationState): Unit = {
+  def traversableSerializer[C[e] <: Traversable[e], T](ser: Serializer[T])(implicit cb: CanBuild[T, C[T]], ct: ClassTag[C[T]], tt: ClassTag[T]): Serializer[C[T]] = new RefSerializer[C[T]] {
+    override def serializeNewValue(value: C[T], dataOutput: DataOutput, state: SerializationState)(implicit tag: ClassTag[C[T]]): Unit = {
       dataOutput.writeInt(value.size)
       value.foreach(t => ser.serialize(t, dataOutput, state))
     }
 
-    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): C[T] = {
+    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState)(implicit tag: ClassTag[C[T]]): C[T] = {
       val b = cb()
       val size = dataInput.readInt()
       b.sizeHint(size)
@@ -25,8 +26,8 @@ trait Serializer4_Collections extends Serializer5_Injections {
     }
   }
 
-  def mapSerializer[C[k, v] <: Map[k, v], K, V](ks: Serializer[K], vs: Serializer[V])(implicit cb: CanBuild[(K, V), C[K, V]]): Serializer[C[K, V]] = new RefSerializer[C[K, V]] {
-    override def serializeNewValue(value: C[K, V], dataOutput: DataOutput, state: SerializationState): Unit = {
+  def mapSerializer[C[k, v] <: Map[k, v], K, V](ks: Serializer[K], vs: Serializer[V])(implicit cb: CanBuild[(K, V), C[K, V]], ct: ClassTag[C[K, V]], kt: ClassTag[K], vt: ClassTag[V]): Serializer[C[K, V]] = new RefSerializer[C[K, V]] {
+    override def serializeNewValue(value: C[K, V], dataOutput: DataOutput, state: SerializationState)(implicit tag: ClassTag[C[K, V]]): Unit = {
       dataOutput.writeInt(value.size)
       value.foreach({
         case (k, v) =>
@@ -35,7 +36,7 @@ trait Serializer4_Collections extends Serializer5_Injections {
       })
     }
 
-    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): C[K, V] = {
+    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState)(implicit tag: ClassTag[C[K, V]]): C[K, V] = {
       val b = cb()
       val size = dataInput.readInt()
       b.sizeHint(size)

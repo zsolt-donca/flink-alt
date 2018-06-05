@@ -35,7 +35,7 @@ class SerializerBasedTypeInformation[P](private val typeInfo: TypeInfo[P])
   def getTypeClass: Class[P] =
     typeInfo.tag.runtimeClass.asInstanceOf[Class[P]]
 
-  def createSerializer(config: ExecutionConfig): TypeSerializer[P] = new SerializerBasedTypeSerializer[P](typeInfo.serializer)
+  def createSerializer(config: ExecutionConfig): TypeSerializer[P] = new SerializerBasedTypeSerializer[P](typeInfo)
 
   def canEqual(that: Any): Boolean =
     that.isInstanceOf[SerializerBasedTypeInformation[_]]

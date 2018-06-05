@@ -5,11 +5,13 @@ import java.io.{DataInput, DataOutput}
 import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
 
+import scala.reflect.ClassTag
+
 trait Serializer2_CommonTypes extends Serializer3_Arrays {
   def stringSerializer: Serializer[String] = RefSerializer(_.writeUTF(_), _.readUTF())
 
-  def optionSerializer[T](ser: Serializer[T]): Serializer[Option[T]] = new RefSerializer[Option[T]] {
-    override def serializeNewValue(value: Option[T], dataOutput: DataOutput, state: SerializationState): Unit = {
+  def optionSerializer[T: ClassTag](ser: Serializer[T]): Serializer[Option[T]] = new RefSerializer[Option[T]] {
+    override def serializeNewValue(value: Option[T], dataOutput: DataOutput, state: SerializationState)(implicit tag: ClassTag[Option[T]]): Unit = {
       value match {
         case None =>
           dataOutput.writeByte(0)
@@ -19,7 +21,7 @@ trait Serializer2_CommonTypes extends Serializer3_Arrays {
       }
     }
 
-    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): Option[T] = {
+    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState)(implicit tag: ClassTag[Option[T]]): Option[T] = {
       val id = dataInput.readByte()
       id match {
         case 0 => None
@@ -29,8 +31,8 @@ trait Serializer2_CommonTypes extends Serializer3_Arrays {
     }
   }
 
-  def eitherSerializer[E, T](es: Serializer[E], ts: Serializer[T]): Serializer[Either[E, T]] = new RefSerializer[Either[E, T]] {
-    override def serializeNewValue(value: Either[E, T], dataOutput: DataOutput, state: SerializationState): Unit = {
+  def eitherSerializer[E: ClassTag, T: ClassTag](es: Serializer[E], ts: Serializer[T]): Serializer[Either[E, T]] = new RefSerializer[Either[E, T]] {
+    override def serializeNewValue(value: Either[E, T], dataOutput: DataOutput, state: SerializationState)(implicit tag: ClassTag[Either[E, T]]): Unit = {
       value match {
         case Left(e) =>
           dataOutput.writeByte(0)
@@ -41,7 +43,7 @@ trait Serializer2_CommonTypes extends Serializer3_Arrays {
       }
     }
 
-    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): Either[E, T] = {
+    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState)(implicit tag: ClassTag[Either[E, T]]): Either[E, T] = {
       val id = dataInput.readByte()
       id match {
         case 0 => Left(es.deserialize(dataInput, state))
@@ -51,8 +53,8 @@ trait Serializer2_CommonTypes extends Serializer3_Arrays {
     }
   }
 
-  def validatedSerializer[E, T](es: Serializer[E], ts: Serializer[T]): Serializer[Validated[E, T]] = new RefSerializer[Validated[E, T]] {
-    override def serializeNewValue(value: Validated[E, T], dataOutput: DataOutput, state: SerializationState): Unit = {
+  def validatedSerializer[E: ClassTag, T: ClassTag](es: Serializer[E], ts: Serializer[T]): Serializer[Validated[E, T]] = new RefSerializer[Validated[E, T]] {
+    override def serializeNewValue(value: Validated[E, T], dataOutput: DataOutput, state: SerializationState)(implicit tag: ClassTag[Validated[E, T]]): Unit = {
       value match {
         case Invalid(e) =>
           dataOutput.writeByte(0)
@@ -63,7 +65,7 @@ trait Serializer2_CommonTypes extends Serializer3_Arrays {
       }
     }
 
-    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): Validated[E, T] = {
+    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState)(implicit tag: ClassTag[Validated[E, T]]): Validated[E, T] = {
       val id = dataInput.readByte()
       id match {
         case 0 => Invalid(es.deserialize(dataInput, state))

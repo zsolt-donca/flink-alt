@@ -1,6 +1,6 @@
 package com.github.flinkalt.typeinfo
 
-trait Injection[A, B] {
+trait Injection[A, B] extends Serializable {
   def apply(a: A): B
 
   def invert(b: B): A

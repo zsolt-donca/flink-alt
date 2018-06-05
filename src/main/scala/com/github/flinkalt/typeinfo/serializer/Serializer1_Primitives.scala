@@ -3,6 +3,8 @@ package com.github.flinkalt.typeinfo.serializer
 import java.io.{DataInput, DataOutput}
 import java.math.BigInteger
 
+import scala.reflect.ClassTag
+
 
 trait Serializer1_Primitives extends Serializer2_CommonTypes {
   def booleanSerializer: Serializer[Boolean] = ValueSerializer(_.writeBoolean(_), _.readBoolean())
@@ -24,13 +26,13 @@ trait Serializer1_Primitives extends Serializer2_CommonTypes {
   def unitSerializer: Serializer[Unit] = ValueSerializer((_, _) => {}, _ => ())
 
   def bigIntSerializer: Serializer[BigInt] = new ValueSerializer[BigInt] {
-    override def serializeNewValue(t: BigInt, out: DataOutput, state: SerializationState): Unit = {
+    override def serializeNewValue(t: BigInt, out: DataOutput, state: SerializationState)(implicit tag: ClassTag[BigInt]): Unit = {
       val bytes = t.toByteArray
       out.writeInt(bytes.length)
       out.write(bytes)
     }
 
-    override def deserializeNewValue(in: DataInput, state: DeserializationState): BigInt = {
+    override def deserializeNewValue(in: DataInput, state: DeserializationState)(implicit tag: ClassTag[BigInt]): BigInt = {
       val length = in.readInt()
       val bytes = new Array[Byte](length)
       in.readFully(bytes)
