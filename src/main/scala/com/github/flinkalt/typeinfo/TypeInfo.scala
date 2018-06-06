@@ -7,7 +7,7 @@ import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, PrimitiveArrayTypeIn
 import shapeless.{Generic, Lazy}
 
 import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable.{ListMap, Seq}
+import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -122,14 +122,6 @@ object SerializableCanBuildFrom extends SerializableCanBuildFrom_Lower {
       override def apply(from: Vector[T]): mutable.Builder[T, Vector[T]] = from.genericBuilder[T]
 
       override def apply(): mutable.Builder[T, Vector[T]] = Vector.newBuilder[T]
-    }
-
-  implicit def listMapSerializableCanBuildFrom[K, V]: SerializableCanBuildFrom[ListMap[K, V], (K, V), ListMap[K, V]] =
-    new SerializableCanBuildFrom[ListMap[K, V], (K, V), ListMap[K, V]] {
-
-      override def apply(from: ListMap[K, V]): mutable.Builder[(K, V), ListMap[K, V]] = from.genericBuilder[(K, V)].asInstanceOf[mutable.Builder[(K, V), ListMap[K, V]]]
-
-      override def apply(): mutable.Builder[(K, V), ListMap[K, V]] = ListMap.newBuilder[K, V]
     }
 }
 

@@ -2,8 +2,6 @@ package com.github.flinkalt.typeinfo.serializer
 
 import org.scalatest.PropSpec
 
-import scala.collection.immutable.ListMap
-
 class CollectionSerializerTest extends PropSpec with RefSerializerHelper {
   property("Lists of ints are serialized") {
     forAllRoundTrip[List[Int]]()
@@ -19,14 +17,6 @@ class CollectionSerializerTest extends PropSpec with RefSerializerHelper {
 
   property("Maps of strings are serialized") {
     forAllRoundTrip[Map[String, String]]()
-  }
-
-  property("List Maps of strings are serialized") {
-    forAll { value: ListMap[String, String] =>
-      val that = roundTripWithSerializer(value)
-
-      assert(value.toVector == that.toVector)
-    }
   }
 
   property("Arrays of bytes are serialized") {
