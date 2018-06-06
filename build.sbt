@@ -27,7 +27,8 @@ lazy val compileDependencies = Seq(
   "com.chuusai" %% "shapeless" % versions.shapeless,
   "com.github.mpilquist" %% "simulacrum" % versions.simulacrum,
   "org.typelevel" %% "cats-core" % versions.cats,
-  "io.github.cquiroz" %% "scala-java-time" % versions.scalaJavaTime
+  "io.github.cquiroz" %% "scala-java-time" % versions.scalaJavaTime,
+  "net.sf.trove4j" % "trove4j" % "3.0.3"
 )
 
 lazy val testDependencies = Seq(

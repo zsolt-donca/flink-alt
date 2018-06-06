@@ -2,6 +2,8 @@ package com.github.flinkalt.typeinfo.serializer
 
 import java.io.{DataInput, DataOutput}
 
+import gnu.trove.map.hash.{TIntObjectHashMap, TObjectIntHashMap}
+
 import scala.reflect.ClassTag
 
 trait Serializer[T] extends Serializable {
@@ -39,23 +41,44 @@ object Serializer extends Serializer1_Primitives {
 
 trait RefSerializer[T] extends Serializer[T] {
   def serialize(value: T, dataOutput: DataOutput, state: SerializationState)(implicit tag: ClassTag[T]): Unit = {
-    val maybeId = state.get(value)
-    val id = maybeId.getOrElse(state.put(value))
-    dataOutput.writeInt(id)
+    var id: Int = 0
+    var isNew: Boolean = false
 
-    if (maybeId.isEmpty) {
+    var valueMap = state.objects.get(tag.runtimeClass)
+    if (valueMap != null) {
+      id = valueMap.get(value)
+    } else {
+      valueMap = new TObjectIntHashMap
+      state.objects.put(tag.runtimeClass, valueMap)
+    }
+
+    if (id == 0) {
+      state.id += 1
+      id = state.id
+      valueMap.put(value, id)
+      isNew = true
+    }
+
+    dataOutput.writeInt(id)
+    if (isNew) {
       serializeNewValue(value, dataOutput, state)
     }
   }
 
   def deserialize(dataInput: DataInput, state: DeserializationState)(implicit tag: ClassTag[T]): T = {
+    var valueMap = state.objects.get(tag.runtimeClass)
+    if (valueMap == null) {
+      valueMap = new TIntObjectHashMap[Any]()
+      state.objects.put(tag.runtimeClass, valueMap)
+    }
+
     val id = dataInput.readInt()
-    val maybeValue = state.get(id)
-    val value = maybeValue.getOrElse({
-      val value = deserializeNewValue(dataInput, state)
-      state.put(id, value)
-      value
-    })
+    var value = valueMap.get(id)
+    if (value == null) {
+      value = deserializeNewValue(dataInput, state)
+      valueMap.put(id, value)
+    }
+
 
     value.asInstanceOf[T]
   }

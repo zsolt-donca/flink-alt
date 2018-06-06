@@ -9,6 +9,8 @@ import org.scalatest.Assertions
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import shapeless.{Coproduct, HList}
 
+import scala.collection.JavaConverters._
+
 trait RefSerializerHelper extends GeneratorDrivenPropertyChecks with Assertions with ScalacheckShapeless {
 
   def forAllRoundTrip[T <: AnyRef : TypeInfo : Arbitrary](): Unit = {
@@ -48,7 +50,9 @@ trait RefSerializerHelper extends GeneratorDrivenPropertyChecks with Assertions 
     }
 
     assert(bis.available == 0, "The deserialization did not consume all data.")
-    assert(!state.values.exists(e => e.isInstanceOf[HList] || e.isInstanceOf[Coproduct]), "The generic representation was somehow serialized.")
+
+    val values = state.objects.asScala.values.flatMap(_.keys()).toVector
+    assert(!values.exists(e => e.isInstanceOf[HList] || e.isInstanceOf[Coproduct]), "The generic representation was somehow serialized.")
 
     copy
   }

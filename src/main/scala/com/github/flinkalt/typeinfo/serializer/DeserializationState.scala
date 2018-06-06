@@ -1,26 +1,17 @@
 package com.github.flinkalt.typeinfo.serializer
 
 import com.github.flinkalt.typeinfo.serializer.Serializer.RefId
+import gnu.trove.map.TIntObjectMap
 
-import scala.collection.mutable
 import scala.language.existentials
 import scala.reflect.ClassTag
 
 case class DeserializationRefEntry(id: RefId, tag: ClassTag[_])
 
 class DeserializationState {
-  private val objects: mutable.Map[DeserializationRefEntry, Any] = mutable.Map.empty
+  val objects: java.util.HashMap[Class[_], TIntObjectMap[Any]] = new java.util.HashMap
 
   private var coproductCases: Int = -1
-
-  def get[T](id: RefId)(implicit tag: ClassTag[T]): Option[T] = {
-    objects.get(DeserializationRefEntry(id, tag)).asInstanceOf[Option[T]]
-  }
-
-  def put[T](id: RefId, value: T)(implicit tag: ClassTag[T]): Unit = {
-    val prev = objects.put(DeserializationRefEntry(id, tag), value)
-    assert(prev.isEmpty)
-  }
 
   def withoutCoproductCases: Boolean = coproductCases < 0
 

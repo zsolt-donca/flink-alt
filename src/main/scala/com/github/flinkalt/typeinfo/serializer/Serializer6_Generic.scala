@@ -46,10 +46,11 @@ trait Serializer6_Generic {
     override def serializeNewValue(value: H :+: T, dataOutput: DataOutput, state: SerializationState)(implicit tag: ClassTag[H :+: T]): Unit = {
       value match {
         case Inl(head) =>
-          dataOutput.writeInt(state.readeAndResetCoproductCases)
+          dataOutput.writeInt(state.coproductCases)
+          state.coproductCases = 0
           headTi.serializer.serializeNewValue(head, dataOutput, state)(headTi.tag)
         case Inr(tail) =>
-          state.increaseCoproductCases()
+          state.coproductCases += 1
           tailTi.serializer.serializeNewValue(tail, dataOutput, state)(tailTi.tag)
       }
     }

@@ -10,6 +10,7 @@ import org.scalatest.PropSpec
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import shapeless.{Coproduct, HList, the}
 
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 class PrimitiveSerializerTest extends PropSpec with GeneratorDrivenPropertyChecks with Serializer1_Primitives {
@@ -71,7 +72,9 @@ class PrimitiveSerializerTest extends PropSpec with GeneratorDrivenPropertyCheck
     assert(bytes.length == expectedSizeOf[T])
     assert(value == copy, "The deserialized object is not equal to the original.")
     assert(bis.available == 0, "The deserialization did not consume all data.")
-    assert(!state.values.exists(e => e.isInstanceOf[HList] || e.isInstanceOf[Coproduct]), "The generic representation was somehow serialized.")
+
+    val values = state.objects.asScala.values.flatMap(_.keys()).toVector
+    assert(!values.exists(e => e.isInstanceOf[HList] || e.isInstanceOf[Coproduct]), "The generic representation was somehow serialized.")
   }
 
   private def expectedSizeOf[T <: AnyVal : ClassTag]: Int = {
