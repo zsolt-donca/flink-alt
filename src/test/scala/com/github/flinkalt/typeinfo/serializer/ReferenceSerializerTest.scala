@@ -1,7 +1,8 @@
 package com.github.flinkalt.typeinfo.serializer
 
 import cats.data.{NonEmptyList, Validated}
-import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.auto._
+import com.github.flinkalt.typeinfo.{TypeInfo, auto}
 import org.scalatest.PropSpec
 
 class ReferenceSerializerTest extends PropSpec with RefSerializerHelper {
@@ -105,13 +106,13 @@ class ReferenceSerializerTest extends PropSpec with RefSerializerHelper {
   }
 
   property("Serialize an either") {
-    assert(TypeInfo[Either[String, Either[Int, Long]]] == TypeInfo.eitherTypeInfo[String, Either[Int, Long]])
+    assert(TypeInfo[Either[String, Either[Int, Long]]] == auto.eitherTypeInfo[String, Either[Int, Long]])
 
     forAllRoundTrip[Either[String, Either[Int, Long]]]()
   }
 
   property("Serialize a validated") {
-    assert(TypeInfo[Validated[NonEmptyList[String], Long]] == TypeInfo.validatedTypeInfo[NonEmptyList[String], Long])
+    assert(TypeInfo[Validated[NonEmptyList[String], Long]] == auto.validatedTypeInfo[NonEmptyList[String], Long])
 
     forAllRoundTrip[Validated[NonEmptyList[String], Long]]()
   }

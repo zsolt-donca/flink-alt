@@ -13,7 +13,7 @@ import shapeless.{Coproduct, HList, the}
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
-class PrimitiveSerializerTest extends PropSpec with GeneratorDrivenPropertyChecks with Serializer1_Primitives {
+class PrimitiveSerializerTest extends PropSpec with GeneratorDrivenPropertyChecks {
 
   property("Booleans are serialized plainly") {
     forAllRoundTrip[Boolean]()
@@ -58,7 +58,7 @@ class PrimitiveSerializerTest extends PropSpec with GeneratorDrivenPropertyCheck
   }
 
   private def roundTrip[T <: AnyVal : ClassTag : TypeInfo : Arbitrary](value: T): Unit = {
-    val ser = TypeInfo[T].serializer
+    val ser = TypeInfo[T]
     val bos = new ByteArrayOutputStream()
     val dataOutput = new DataOutputStream(bos)
     val state = new SerializationState

@@ -30,16 +30,16 @@ trait RefSerializerHelper extends GeneratorDrivenPropertyChecks with Assertions 
 
   def roundTripWithSerializer[T <: AnyRef : TypeInfo](value: T): T = {
     val typeInfo = TypeInfo[T]
-    val ser = typeInfo.serializer
+    val ser = typeInfo
     val bos = new ByteArrayOutputStream()
     val dataOutput = new DataOutputStream(bos)
     val state = new SerializationState
-    ser.serialize(value, dataOutput, state)(typeInfo.tag)
+    ser.serialize(value, dataOutput, state)
 
     val bytes = bos.toByteArray
     val bis = new ByteArrayInputStream(bytes)
     val dataInput = new DataInputStream(bis)
-    val copy = ser.deserialize(dataInput, new DeserializationState)(typeInfo.tag)
+    val copy = ser.deserialize(dataInput, new DeserializationState)
 
     (value, copy) match {
       case (valueArray: Array[_], copyArray: Array[_]) =>

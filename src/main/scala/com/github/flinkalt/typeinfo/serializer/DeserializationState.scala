@@ -1,15 +1,12 @@
 package com.github.flinkalt.typeinfo.serializer
 
-import com.github.flinkalt.typeinfo.serializer.Serializer.RefId
 import gnu.trove.map.TIntObjectMap
+import gnu.trove.map.hash.TIntObjectHashMap
 
 import scala.language.existentials
-import scala.reflect.ClassTag
-
-case class DeserializationRefEntry(id: RefId, tag: ClassTag[_])
 
 class DeserializationState {
-  val objects: java.util.HashMap[Class[_], TIntObjectMap[Any]] = new java.util.HashMap
+  val objects: TIntObjectMap[Any] = new TIntObjectHashMap[Any]()
 
   private var coproductCases: Int = -1
 

@@ -21,15 +21,15 @@ final class SerializerBasedTypeSerializer[T](private val typeInfo: TypeInfo[T]) 
 
   override def copy(source: DataInputView, target: DataOutputView): Unit = serialize(deserialize(source), target)
 
-  override def serialize(record: T, target: DataOutputView): Unit = typeInfo.serializer.serialize(record, target, new SerializationState)(typeInfo.tag)
+  override def serialize(record: T, target: DataOutputView): Unit = typeInfo.serialize(record, target, new SerializationState)
 
-  override def deserialize(source: DataInputView): T = typeInfo.serializer.deserialize(source, new DeserializationState)(typeInfo.tag)
+  override def deserialize(source: DataInputView): T = typeInfo.deserialize(source, new DeserializationState)
 
   override def snapshotConfiguration(): TypeSerializerConfigSnapshot = new ParameterlessTypeSerializerConfig
 
   override def ensureCompatibility(configSnapshot: TypeSerializerConfigSnapshot): CompatibilityResult[T] = CompatibilityResult.compatible()
 
-  override def hashCode(): Int = typeInfo.serializer.hashCode()
+  override def hashCode(): Int = typeInfo.hashCode()
 
   override def canEqual(obj: scala.Any): Boolean = obj.isInstanceOf[SerializerBasedTypeSerializer[T]]
 

@@ -1,5 +1,6 @@
 package com.github.flinkalt.typeinfo.serializer
 
+import com.github.flinkalt.typeinfo.auto._
 import org.scalatest.PropSpec
 
 class CollectionSerializerTest extends PropSpec with RefSerializerHelper {

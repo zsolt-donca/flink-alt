@@ -4,7 +4,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 
 package object typeinfo {
 
-  object auto {
+  object auto extends TypeInfo1_Primitives {
     // Shadow the default macro based TypeInformation providers.
     def createTypeInformation: Nothing = ???
     def createTuple2TypeInformation: Nothing = ???

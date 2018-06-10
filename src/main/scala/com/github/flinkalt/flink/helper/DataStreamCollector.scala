@@ -5,6 +5,7 @@ import java.net.{InetAddress, InetSocketAddress, UnknownHostException}
 
 import com.github.flinkalt.Data
 import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.auto._
 import org.apache.flink.runtime.net.ConnectionUtils
 import org.apache.flink.streaming.api.environment.{LocalStreamEnvironment, RemoteStreamEnvironment}
 import org.apache.flink.streaming.api.scala._
