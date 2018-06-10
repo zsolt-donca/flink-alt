@@ -15,7 +15,7 @@ object GenTypeInfo {
     override def typeInfo: TypeInfo[HNil] = new SerializerBasedTypeInfo[HNil] {
       override def serializer: Serializer[HNil] = Serializer.unitSerializer.imap[HNil](_ => HNil)(_ => ())
 
-      override def nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq.empty
+      override val nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq.empty
     }
   }
 
@@ -23,7 +23,7 @@ object GenTypeInfo {
     override def typeInfo: TypeInfo[H :: T] = new SerializerBasedTypeInfo[H :: T] {
       override def serializer: Serializer[H :: T] = Serializer.hlistSerializer(head.value, tail.typeInfo)
 
-      override def nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq(head.value, tail.typeInfo)
+      override val nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq(head.value, tail.typeInfo)
     }
   }
 
@@ -31,7 +31,7 @@ object GenTypeInfo {
     override def typeInfo: TypeInfo[CNil] = new SerializerBasedTypeInfo[CNil] {
       override def serializer: Serializer[CNil] = Serializer.cnilSerializer
 
-      override def nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq.empty
+      override val nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq.empty
     }
   }
 
@@ -39,7 +39,7 @@ object GenTypeInfo {
     override def typeInfo: TypeInfo[H :+: T] = new SerializerBasedTypeInfo[H :+: T] {
       override def serializer: Serializer[H :+: T] = Serializer.coproductSerializer(head.value, tail.typeInfo)
 
-      override def nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq(head.value, tail.typeInfo)
+      override val nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq(head.value, tail.typeInfo)
     }
   }
 }

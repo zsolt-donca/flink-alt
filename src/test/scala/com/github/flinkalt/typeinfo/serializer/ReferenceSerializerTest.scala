@@ -115,4 +115,53 @@ class ReferenceSerializerTest extends PropSpec with RefSerializerHelper {
 
     forAllRoundTrip[Validated[NonEmptyList[String], Long]]()
   }
+
+  property("Serialize a case class with options of different types") {
+    case class Foo(a: Option[Int], b: Option[Double])
+
+    val copy = roundTripWithSerializer(Foo(Some(0), Some(0.0)))
+    val i: Int = copy.a.get
+    val d: Double = copy.b.get
+
+    assert(i == 0)
+    assert(d == 0.0)
+  }
+
+  property("Serialize a collection with different but equal contents") {
+    case class Foo(a: List[Vector[Int]], b: Vector[List[Int]])
+
+    val value = Foo(List(Vector(1)), Vector(List(1)))
+    val copy = roundTripWithSerializer(value)
+
+    val a: List[Vector[Int]] = copy.a
+    val ah: Vector[Int] = a.head
+    val ahh: Int = ah.head
+    assert(ahh == 1)
+
+    val b = copy.b
+    val bh: List[Int] = b.head
+    val bhh = bh.head
+    assert(bhh == 1)
+  }
+
+  property("Serialize some generic type with different but equal arguments") {
+    case class Foo[T](value: T)
+    case class Bar(i: Foo[Int], d: Foo[Double])
+
+    val value = Bar(Foo(0), Foo(0.0))
+    val copy = roundTripWithSerializer(value)
+
+    assert(copy.i.value == 0)
+    assert(copy.d.value == 0.0)
+  }
+
+  property("Serialize some non-generic type with different but equal arguments") {
+    case class Bar(i: Int, d: Double)
+
+    val value = Bar(0, 0.0)
+    val copy = roundTripWithSerializer(value)
+
+    assert(copy.i == 0)
+    assert(copy.d == 0.0)
+  }
 }

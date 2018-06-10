@@ -41,7 +41,8 @@ class CollectSink[IN](val hostIp: InetAddress, val port: Int, val serializer: Ty
 
   override def invoke(value: IN, context: SinkFunction.Context[_]): Unit = {
     try {
-      val time = Instant(context.timestamp())
+      val timestampOrNull = context.timestamp()
+      val time = Instant(Option(timestampOrNull).map(_.longValue()).getOrElse(-1))
       val watermark = Instant(context.currentWatermark())
       val data = Data(time, watermark, value)
       serializer.serialize(data, streamWriter)

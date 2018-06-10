@@ -56,6 +56,22 @@ class TypeInfoTest extends FunSuite {
     assert(t1 == t2)
   }
 
+  test("Type information inequality of Option") {
+    def t1 = implicitly[TypeInformation[Option[Double]]]
+    def t2 = implicitly[TypeInformation[Option[Int]]]
+
+    assert(!(t1 eq t2))
+    assert(t1 != t2)
+  }
+
+  test("Type information equality for Int") {
+    def t1 = implicitly[TypeInformation[Int]]
+    def t2 = implicitly[TypeInformation[Int]]
+
+    assert(!(t1 eq t2))
+    assert(t1 != t2)
+  }
+
   test("Type information equality of product") {
     def t1 = implicitly[TypeInformation[Envelope[(String, Int)]]]
     def t2 = implicitly[TypeInformation[Envelope[(String, Int)]]]
@@ -72,12 +88,13 @@ class TypeInfoTest extends FunSuite {
     assert(t1 == t2)
   }
 
+  // TODO this is a known limitation at the moment
   // TODO this triggers a StackOverflowError as the typeclass instances themselves are recursive - need to find a way to make it work
-  ignore("Type information equality of recursive coproduct") {
-    def t1 = implicitly[TypeInformation[Tree[Int]]]
-    def t2 = implicitly[TypeInformation[Tree[Int]]]
-
-    assert(!(t1 eq t2))
-    assert(t1 == t2)
-  }
+  //  ignore("Type information equality of recursive coproduct") {
+  //    def t1 = implicitly[TypeInformation[Tree[Int]]]
+  //    def t2 = implicitly[TypeInformation[Tree[Int]]]
+  //
+  //    assert(!(t1 eq t2))
+  //    assert(t1 == t2)
+  //  }
 }

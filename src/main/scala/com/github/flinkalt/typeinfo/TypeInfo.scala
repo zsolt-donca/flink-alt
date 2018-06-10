@@ -25,20 +25,20 @@ final class DirectTypeInfo[T](private val typeInformation: TypeInformation[T], s
     other match {
       case that: AnyRef if that eq this => true
       case that: DirectTypeInfo[_] =>
-        typeInformation == that.typeInformation
+        tag == that.tag
       case _ => false
     }
   }
 
   override def hashCode(): Int = {
-    typeInformation.hashCode()
+    tag.hashCode()
   }
 }
 
 abstract class SerializerBasedTypeInfo[T](implicit val tag: ClassTag[T]) extends TypeInfo[T] {
   override def flinkTypeInfo: TypeInformation[T] = new SerializerBasedTypeInformation[T](this)
 
-  def nestedTypeInfos: Seq[TypeInfo[_]]
+  val nestedTypeInfos: Seq[TypeInfo[_]]
 
   override def equals(other: Any): Boolean = {
     other match {
@@ -49,7 +49,7 @@ abstract class SerializerBasedTypeInfo[T](implicit val tag: ClassTag[T]) extends
     }
   }
 
-  override def hashCode(): Int = {
+  override val hashCode: Int = {
     tag.hashCode() * 31 + nestedTypeInfos.hashCode()
   }
 }
@@ -86,19 +86,19 @@ trait TypeInfo2_Common extends TypeInfo3_Arrays {
   implicit def optionTypeInfo[T: TypeInfo]: TypeInfo[Option[T]] = new SerializerBasedTypeInfo[Option[T]]() {
     override def serializer: Serializer[Option[T]] = Serializer.optionSerializer(TypeInfo[T].serializer)(TypeInfo[T].tag)
 
-    override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(TypeInfo[T])
+    override val nestedTypeInfos: Seq[TypeInfo[_]] = Seq(TypeInfo[T])
   }
 
   implicit def eitherTypeInfo[E: TypeInfo, T: TypeInfo]: TypeInfo[Either[E, T]] = new SerializerBasedTypeInfo[Either[E, T]]() {
     override def serializer: Serializer[Either[E, T]] = Serializer.eitherSerializer(TypeInfo[E].serializer, TypeInfo[T].serializer)(TypeInfo[E].tag, TypeInfo[T].tag)
 
-    override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(TypeInfo[E], TypeInfo[T])
+    override val nestedTypeInfos: Seq[TypeInfo[_]] = Seq(TypeInfo[E], TypeInfo[T])
   }
 
   implicit def validatedTypeInfo[E: TypeInfo, T: TypeInfo]: TypeInfo[Validated[E, T]] = new SerializerBasedTypeInfo[Validated[E, T]]() {
     override def serializer: Serializer[Validated[E, T]] = Serializer.validatedSerializer(TypeInfo[E].serializer, TypeInfo[T].serializer)(TypeInfo[E].tag, TypeInfo[T].tag)
 
-    override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(TypeInfo[E], TypeInfo[T])
+    override val nestedTypeInfos: Seq[TypeInfo[_]] = Seq(TypeInfo[E], TypeInfo[T])
   }
 }
 
@@ -140,13 +140,13 @@ trait TypeInfo4_Collections extends TypeInfo5_Injections {
   implicit def traversableTypeInfo[C[e] <: Traversable[e], T](implicit typeInfo: TypeInfo[T], cb: SerializableCanBuildFrom[Nothing, T, C[T]], ct: ClassTag[C[T]]): TypeInfo[C[T]] = new SerializerBasedTypeInfo[C[T]] {
     override def serializer: Serializer[C[T]] = Serializer.traversableSerializer[C, T](typeInfo.serializer)(cb, ct, typeInfo.tag)
 
-    override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(typeInfo)
+    override val nestedTypeInfos: Seq[TypeInfo[_]] = Seq(typeInfo)
   }
 
   implicit def mapTypeInfo[C[k, v] <: Map[k, v], K, V](implicit kti: TypeInfo[K], vti: TypeInfo[V], cb: SerializableCanBuildFrom[Nothing, (K, V), C[K, V]], ct: ClassTag[C[K, V]]): TypeInfo[C[K, V]] = new SerializerBasedTypeInfo[C[K, V]]() {
     override def serializer: Serializer[C[K, V]] = Serializer.mapSerializer[C, K, V](kti.serializer, vti.serializer)(cb, ct, kti.tag, vti.tag)
 
-    override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(kti, vti)
+    override val nestedTypeInfos: Seq[TypeInfo[_]] = Seq(kti, vti)
   }
 }
 
@@ -154,7 +154,7 @@ trait TypeInfo5_Injections extends TypeInfo6_Generic {
   implicit def injectionTypeInfo[T: ClassTag, U](implicit inj: Injection[T, U], typeInfo: TypeInfo[U]): TypeInfo[T] = new SerializerBasedTypeInfo[T]() {
     override def serializer: Serializer[T] = Serializer.injectSerializer(inj, typeInfo.serializer)(typeInfo.tag)
 
-    override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(typeInfo)
+    override val nestedTypeInfos: Seq[TypeInfo[_]] = Seq(typeInfo)
   }
 }
 
@@ -162,6 +162,6 @@ trait TypeInfo6_Generic {
   implicit def genericEncoder[A: ClassTag, R](implicit gen: Generic.Aux[A, R], genTypeInfo: Lazy[GenTypeInfo[R]]): TypeInfo[A] = new SerializerBasedTypeInfo[A] {
     override def serializer: Serializer[A] = Serializer.genericSerializer(gen, genTypeInfo.value.typeInfo)
 
-    override def nestedTypeInfos: Seq[TypeInfo[_]] = Seq(genTypeInfo.value.typeInfo)
+    override val nestedTypeInfos: Seq[TypeInfo[_]] = Seq(genTypeInfo.value.typeInfo)
   }
 }
