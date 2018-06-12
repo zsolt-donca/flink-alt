@@ -5,9 +5,6 @@ import java.io.{DataInput, DataOutput}
 import com.github.flinkalt.typeinfo.serializer.{DeserializationState, SerializationState, ValueSerializer}
 import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Inl, Inr, Lazy}
 
-import scala.collection.immutable
-import scala.collection.immutable.Seq
-
 trait GenTypeInfo[T] extends Serializable {
   def value: TypeInfo[T]
 }
@@ -15,7 +12,7 @@ trait GenTypeInfo[T] extends Serializable {
 object GenTypeInfo {
   implicit def hnilTypeInfo: GenTypeInfo[HNil] = new GenTypeInfo[HNil] {
     override def value: TypeInfo[HNil] = new SerializerBasedTypeInfo[HNil] with ValueSerializer[HNil] {
-      override val nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq.empty
+      override val nestedTypeInfos: Unit = ()
 
       override def serializeNewValue(value: HNil, dataOutput: DataOutput, state: SerializationState): Unit = {}
 
@@ -25,7 +22,7 @@ object GenTypeInfo {
 
   implicit def hlistTypeInfo[H, T <: HList](implicit headTi: Lazy[TypeInfo[H]], tailTi: GenTypeInfo[T]): GenTypeInfo[H :: T] = new GenTypeInfo[::[H, T]] {
     override def value: TypeInfo[H :: T] = new SerializerBasedTypeInfo[H :: T] with ValueSerializer[H :: T] {
-      override lazy val nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq(headTi.value, tailTi.value)
+      override lazy val nestedTypeInfos: (TypeInfo[H], TypeInfo[T]) = (headTi.value, tailTi.value)
 
       override def serializeNewValue(value: H :: T, dataOutput: DataOutput, state: SerializationState): Unit = {
         value match {
@@ -45,7 +42,7 @@ object GenTypeInfo {
 
   implicit def cnilTypeInfo: GenTypeInfo[CNil] = new GenTypeInfo[CNil] {
     override def value: TypeInfo[CNil] = new SerializerBasedTypeInfo[CNil] with ValueSerializer[CNil] {
-      override val nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq.empty
+      override val nestedTypeInfos: Unit = ()
 
       override def serializeNewValue(value: CNil, dataOutput: DataOutput, state: SerializationState): Unit = {
         sys.error("Impossible")
@@ -59,7 +56,7 @@ object GenTypeInfo {
 
   implicit def coproductSerializer[H, T <: Coproduct](implicit headTi: Lazy[TypeInfo[H]], tailTi: GenTypeInfo[T]): GenTypeInfo[H :+: T] = new GenTypeInfo[H :+: T] {
     override def value: TypeInfo[H :+: T] = new SerializerBasedTypeInfo[H :+: T] with ValueSerializer[H :+: T] {
-      override lazy val nestedTypeInfos: immutable.Seq[TypeInfo[_]] = Seq(headTi.value, tailTi.value)
+      override lazy val nestedTypeInfos: (TypeInfo[H], TypeInfo[T]) = (headTi.value, tailTi.value)
 
       override def serializeNewValue(value: H :+: T, dataOutput: DataOutput, state: SerializationState): Unit = {
         value match {

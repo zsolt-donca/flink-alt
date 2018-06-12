@@ -3,7 +3,6 @@ package com.github.flinkalt.typeinfo
 import com.github.flinkalt.typeinfo.serializer._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
-import scala.collection.immutable.Seq
 import scala.reflect.ClassTag
 
 abstract class TypeInfo[T] extends Serializer[T] with Serializable {
@@ -31,7 +30,7 @@ abstract class DirectTypeInfo[T](typeInformation: TypeInformation[T])(implicit v
 abstract class SerializerBasedTypeInfo[T](implicit val tag: ClassTag[T]) extends TypeInfo[T] {
   override def flinkTypeInfo: TypeInformation[T] = new SerializerBasedTypeInformation[T](this)
 
-  def nestedTypeInfos: Seq[TypeInfo[_]]
+  def nestedTypeInfos: Any
 
   override def equals(other: Any): Boolean = {
     other match {

@@ -5,7 +5,6 @@ import java.io.{DataInput, DataOutput}
 import com.github.flinkalt.typeinfo.serializer.{DeserializationState, RefSerializer, SerializationState}
 
 import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable.Seq
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -41,7 +40,7 @@ trait SerializableCanBuildFrom_Lower {
 trait TypeInfo4_Collections extends TypeInfo5_Injections {
 
   implicit def traversableTypeInfo[C[e] <: Traversable[e], T](implicit typeInfo: TypeInfo[T], cb: SerializableCanBuildFrom[Nothing, T, C[T]], ct: ClassTag[C[T]]): TypeInfo[C[T]] = new SerializerBasedTypeInfo[C[T]] with RefSerializer[C[T]] {
-    override val nestedTypeInfos: Seq[TypeInfo[_]] = Seq(typeInfo)
+    override val nestedTypeInfos: TypeInfo[T] = typeInfo
 
     override def serializeNewValue(value: C[T], dataOutput: DataOutput, state: SerializationState): Unit = {
       dataOutput.writeInt(value.size)
@@ -61,7 +60,7 @@ trait TypeInfo4_Collections extends TypeInfo5_Injections {
   }
 
   implicit def mapTypeInfo[C[k, v] <: Map[k, v], K, V](implicit kti: TypeInfo[K], vti: TypeInfo[V], cb: SerializableCanBuildFrom[Nothing, (K, V), C[K, V]], ct: ClassTag[C[K, V]]): TypeInfo[C[K, V]] = new SerializerBasedTypeInfo[C[K, V]] with RefSerializer[C[K, V]] {
-    override val nestedTypeInfos: Seq[TypeInfo[_]] = Seq(kti, vti)
+    override val nestedTypeInfos: (TypeInfo[K], TypeInfo[V]) = (kti, vti)
 
     override def serializeNewValue(value: C[K, V], dataOutput: DataOutput, state: SerializationState): Unit = {
       dataOutput.writeInt(value.size)
