@@ -1,10 +1,11 @@
 package com.github.flinkalt
 
+import com.github.flinkalt.typeinfo.instances.TypeInfoInstances
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
 package object typeinfo {
 
-  object auto extends TypeInfo1_Primitives {
+  object auto extends TypeInfoInstances {
     // Shadow the default macro based TypeInformation providers.
     def createTypeInformation: Nothing = ???
     def createTuple2TypeInformation: Nothing = ???

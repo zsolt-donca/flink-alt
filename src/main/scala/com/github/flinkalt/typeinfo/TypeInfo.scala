@@ -28,7 +28,7 @@ abstract class DirectTypeInfo[T](typeInformation: TypeInformation[T])(implicit v
 }
 
 abstract class SerializerBasedTypeInfo[T](implicit val tag: ClassTag[T]) extends TypeInfo[T] {
-  override def flinkTypeInfo: TypeInformation[T] = new SerializerBasedTypeInformation[T](this)
+  override def flinkTypeInfo: TypeInformation[T] = new TypeInfoBasedTypeInformation[T](this)
 
   def nestedTypeInfos: Any
 

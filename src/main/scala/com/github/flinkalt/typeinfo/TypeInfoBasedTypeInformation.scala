@@ -19,7 +19,7 @@ import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 
-class SerializerBasedTypeInformation[P](private val typeInfo: TypeInfo[P])
+final class TypeInfoBasedTypeInformation[P](private val typeInfo: TypeInfo[P])
   extends TypeInformation[P] {
 
   def isBasicType: Boolean = false
@@ -35,13 +35,13 @@ class SerializerBasedTypeInformation[P](private val typeInfo: TypeInfo[P])
   def getTypeClass: Class[P] =
     typeInfo.tag.runtimeClass.asInstanceOf[Class[P]]
 
-  def createSerializer(config: ExecutionConfig): TypeSerializer[P] = new SerializerBasedTypeSerializer[P](typeInfo)
+  def createSerializer(config: ExecutionConfig): TypeSerializer[P] = new TypeInfoBasedTypeSerializer[P](typeInfo)
 
   def canEqual(that: Any): Boolean =
-    that.isInstanceOf[SerializerBasedTypeInformation[_]]
+    that.isInstanceOf[TypeInfoBasedTypeInformation[_]]
 
   override def equals(other: Any): Boolean = other match {
-    case that: SerializerBasedTypeInformation[_] =>
+    case that: TypeInfoBasedTypeInformation[_] =>
       (that canEqual this) &&
         typeInfo == that.typeInfo
     case _ => false

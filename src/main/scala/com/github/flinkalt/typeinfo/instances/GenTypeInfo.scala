@@ -1,8 +1,9 @@
-package com.github.flinkalt.typeinfo
+package com.github.flinkalt.typeinfo.instances
 
 import java.io.{DataInput, DataOutput}
 
 import com.github.flinkalt.typeinfo.serializer.{DeserializationState, SerializationState, ValueSerializer}
+import com.github.flinkalt.typeinfo.{SerializerBasedTypeInfo, TypeInfo}
 import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Inl, Inr, Lazy}
 
 trait GenTypeInfo[T] extends Serializable {

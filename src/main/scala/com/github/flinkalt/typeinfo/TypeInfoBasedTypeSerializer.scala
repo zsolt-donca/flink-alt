@@ -4,7 +4,7 @@ import com.github.flinkalt.typeinfo.serializer.{DeserializationState, Serializat
 import org.apache.flink.api.common.typeutils.{CompatibilityResult, ParameterlessTypeSerializerConfig, TypeSerializer, TypeSerializerConfigSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
-final class SerializerBasedTypeSerializer[T](private val typeInfo: TypeInfo[T]) extends TypeSerializer[T] {
+final class TypeInfoBasedTypeSerializer[T](private val typeInfo: TypeInfo[T]) extends TypeSerializer[T] {
   override def duplicate(): TypeSerializer[T] = this
 
   override def isImmutableType: Boolean = true
@@ -31,10 +31,10 @@ final class SerializerBasedTypeSerializer[T](private val typeInfo: TypeInfo[T]) 
 
   override def hashCode(): Int = typeInfo.hashCode()
 
-  override def canEqual(obj: scala.Any): Boolean = obj.isInstanceOf[SerializerBasedTypeSerializer[T]]
+  override def canEqual(obj: scala.Any): Boolean = obj.isInstanceOf[TypeInfoBasedTypeSerializer[T]]
 
   override def equals(o: scala.Any): Boolean = o match {
-    case that: SerializerBasedTypeSerializer[_] =>
+    case that: TypeInfoBasedTypeSerializer[_] =>
       (this eq that) || (that canEqual this) && this.typeInfo == that.typeInfo
     case _ => false
   }

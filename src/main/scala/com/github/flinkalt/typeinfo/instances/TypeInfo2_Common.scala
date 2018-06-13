@@ -1,10 +1,11 @@
-package com.github.flinkalt.typeinfo
+package com.github.flinkalt.typeinfo.instances
 
 import java.io.{DataInput, DataOutput}
 
 import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
 import com.github.flinkalt.typeinfo.serializer._
+import com.github.flinkalt.typeinfo.{DirectTypeInfo, SerializerBasedTypeInfo, TypeInfo}
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo
 
 trait TypeInfo2_Common extends TypeInfo3_Arrays {

@@ -1,8 +1,9 @@
-package com.github.flinkalt.typeinfo
+package com.github.flinkalt.typeinfo.instances
 
 import java.io.{DataInput, DataOutput}
 
 import com.github.flinkalt.typeinfo.serializer.{DeserializationState, SerializationState, ValueSerializer}
+import com.github.flinkalt.typeinfo.{DirectTypeInfo, TypeInfo}
 import org.apache.flink.api.common.typeinfo.PrimitiveArrayTypeInfo
 
 trait TypeInfo3_Arrays extends TypeInfo4_Collections {

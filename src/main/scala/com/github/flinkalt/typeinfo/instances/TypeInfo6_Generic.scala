@@ -1,8 +1,9 @@
-package com.github.flinkalt.typeinfo
+package com.github.flinkalt.typeinfo.instances
 
 import java.io.{DataInput, DataOutput}
 
 import com.github.flinkalt.typeinfo.serializer._
+import com.github.flinkalt.typeinfo.{SerializerBasedTypeInfo, TypeInfo}
 import shapeless.{Generic, Lazy}
 
 import scala.reflect.ClassTag
