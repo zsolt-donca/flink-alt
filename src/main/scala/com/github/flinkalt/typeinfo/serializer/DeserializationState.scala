@@ -3,8 +3,6 @@ package com.github.flinkalt.typeinfo.serializer
 import gnu.trove.map.TIntObjectMap
 import gnu.trove.map.hash.TIntObjectHashMap
 
-import scala.language.existentials
-
 class DeserializationState {
   val objects: TIntObjectMap[Any] = new TIntObjectHashMap[Any]()
 

@@ -3,7 +3,6 @@ package com.github.flinkalt.typeinfo.serializer
 import com.github.flinkalt.typeinfo.serializer.SerializationState.RefId
 import gnu.trove.map.TObjectIntMap
 
-import scala.language.existentials
 import scala.reflect.ClassTag
 
 case class SerializationRefEntry[T](value: T, tag: ClassTag[_])

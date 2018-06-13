@@ -14,12 +14,8 @@ val versions = new {
   val scalatest = "3.0.4"
   val scalacheck = "1.13.5"
   val checkless = "1.1.8"
-  val scala_arm = "2.0"
-  val utils = "1.07.00"
   val slf4j = "1.7.25"
   val paradise = "2.1.0"
-  val scalaJavaTime = "2.0.0-M13"
-  val silencer = "1.0"
 }
 
 lazy val compileDependencies = Seq(
@@ -28,9 +24,7 @@ lazy val compileDependencies = Seq(
   "com.chuusai" %% "shapeless" % versions.shapeless,
   "com.github.mpilquist" %% "simulacrum" % versions.simulacrum,
   "org.typelevel" %% "cats-core" % versions.cats,
-  "io.github.cquiroz" %% "scala-java-time" % versions.scalaJavaTime,
-  "net.sf.trove4j" % "trove4j" % "3.0.3",
-  "com.github.ghik" %% "silencer-lib" % versions.silencer
+  "net.sf.trove4j" % "trove4j" % "3.0.3"
 )
 
 lazy val testDependencies = Seq(
@@ -38,8 +32,6 @@ lazy val testDependencies = Seq(
   "org.scalatest" %% "scalatest" % versions.scalatest,
   "org.scalacheck" %% "scalacheck" % versions.scalacheck,
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % versions.checkless,
-  "com.jsuereth" %% "scala-arm" % versions.scala_arm,
-  "org.ostermiller" % "utils" % versions.utils,
   "org.slf4j" % "slf4j-nop" % versions.slf4j
 ).map(_ % "test")
 
@@ -50,11 +42,12 @@ lazy val commonSettings = Seq(
     "-feature",
     "-unchecked",
     "-language:higherKinds",
+    "-language:existentials",
     "-language:implicitConversions",
     "-language:postfixOps",
     "-Ywarn-dead-code",
     "-Ywarn-unused",
-    //    "-Ywarn-unused-import",
+    "-Ywarn-unused-import",
     "-Ypartial-unification",
     "-Xfatal-warnings",
     "-Xfuture",
@@ -62,8 +55,7 @@ lazy val commonSettings = Seq(
   ),
   libraryDependencies ++= compileDependencies ++ testDependencies,
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6"),
-  addCompilerPlugin("com.github.ghik" %% "silencer-plugin" % versions.silencer)
+  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.7")
 )
 
 lazy val root = Project("flink-alt", file("."))
