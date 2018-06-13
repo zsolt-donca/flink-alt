@@ -1,11 +1,10 @@
-package com.github.flinkalt.typeinfo.serializer
+package com.github.flinkalt.typeinfo.instances
 
-import cats.data.{NonEmptyList, Validated}
+import com.github.flinkalt.Data
 import com.github.flinkalt.typeinfo.auto._
-import com.github.flinkalt.typeinfo.{TypeInfo, auto}
 import org.scalatest.PropSpec
 
-class ReferenceSerializerTest extends PropSpec with RefSerializerHelper {
+class TypeInfo6_GenericTest extends PropSpec with RefSerializerHelper {
 
   property("Empty product") {
     case class EmptyCaseClass()
@@ -36,6 +35,15 @@ class ReferenceSerializerTest extends PropSpec with RefSerializerHelper {
     case class AnotherCaseClass(i: Int, s: String)
     case class CaseClass(i1: Int, c: AnotherCaseClass)
     forAllRoundTrip[CaseClass]()
+  }
+
+  property("Tuple with multiple components") {
+    forAllRoundTrip[(String, Long, Int)]()
+  }
+
+  property("Envelope with stuff in it") {
+    case class Envelope[T](s: String, i: Int, contents: T)
+    forAllRoundTrip[Envelope[Data[(String, Int)]]]()
   }
 
   property("Coproduct with one case") {
@@ -74,10 +82,6 @@ class ReferenceSerializerTest extends PropSpec with RefSerializerHelper {
     forAllRoundTrip[SealedTrait]()
   }
 
-  property("Equal strings should be same when deserialized") {
-    forAllRoundTripWithPair[String]()
-  }
-
   property("Equal products should be same when deserialized") {
     case class CaseClass(i: Int)
 
@@ -103,18 +107,6 @@ class ReferenceSerializerTest extends PropSpec with RefSerializerHelper {
     case class Tree[+E](value: E, children: List[Tree[E]])
 
     forAllRoundTrip[Tree[Int]]()
-  }
-
-  property("Serialize an either") {
-    assert(TypeInfo[Either[String, Either[Int, Long]]] == auto.eitherTypeInfo[String, Either[Int, Long]])
-
-    forAllRoundTrip[Either[String, Either[Int, Long]]]()
-  }
-
-  property("Serialize a validated") {
-    assert(TypeInfo[Validated[NonEmptyList[String], Long]] == auto.validatedTypeInfo[NonEmptyList[String], Long])
-
-    forAllRoundTrip[Validated[NonEmptyList[String], Long]]()
   }
 
   property("Serialize a case class with options of different types") {
@@ -164,5 +156,16 @@ class ReferenceSerializerTest extends PropSpec with RefSerializerHelper {
 
     assert(copy.i == 0)
     assert(copy.d == 0.0)
+  }
+
+  case class Tree[+E](value: E, children: List[Tree[E]])
+
+  property("Serialize recursive coproducts") {
+    forAllRoundTrip[Tree[String]]()
+  }
+
+  property("Serialize a particular recursive coproduct") {
+    val value = Tree("foo", List(Tree("bar", List())))
+    roundTripWithSerializer(value)
   }
 }

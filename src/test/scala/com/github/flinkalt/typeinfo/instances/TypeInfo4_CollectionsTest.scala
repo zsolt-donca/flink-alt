@@ -1,9 +1,9 @@
-package com.github.flinkalt.typeinfo.serializer
+package com.github.flinkalt.typeinfo.instances
 
 import com.github.flinkalt.typeinfo.auto._
 import org.scalatest.PropSpec
 
-class CollectionSerializerTest extends PropSpec with RefSerializerHelper {
+class TypeInfo4_CollectionsTest extends PropSpec with RefSerializerHelper {
   property("Lists of ints are serialized") {
     forAllRoundTrip[List[Int]]()
   }
@@ -20,15 +20,6 @@ class CollectionSerializerTest extends PropSpec with RefSerializerHelper {
     forAllRoundTrip[Map[String, String]]()
   }
 
-  property("Arrays of bytes are serialized") {
-    forAllRoundTrip[Array[Byte]]()
-  }
-
-  // TODO write instances for additional arrays
-  //  property("Arrays of longs are serialized") {
-  //    forAllRoundTrip[Array[Long]]()
-  //  }
-
   property("Vectors of products are serialized") {
     case class Test(i: Int, c: Char)
     forAllRoundTrip[Vector[Test]]()
@@ -42,4 +33,17 @@ class CollectionSerializerTest extends PropSpec with RefSerializerHelper {
     forAllRoundTrip[Vector[Coproduct]]()
   }
 
+  case class Test(list: List[Int], vector: Vector[Int])
+
+  property("Collections of different types are serialized correctly") {
+    forAllRoundTrip[Test]()
+  }
+
+  property("Empty equal collections of different types are serialized correctly") {
+    roundTripWithSerializer(Test(List.empty, Vector.empty))
+  }
+
+  property("Non-empty equal collections of different types are serialized correctly") {
+    roundTripWithSerializer(Test(List(42), Vector(42)))
+  }
 }

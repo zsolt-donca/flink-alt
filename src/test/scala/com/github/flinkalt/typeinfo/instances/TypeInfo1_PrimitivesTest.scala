@@ -1,9 +1,10 @@
-package com.github.flinkalt.typeinfo.serializer
+package com.github.flinkalt.typeinfo.instances
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
 import com.github.flinkalt.typeinfo.TypeInfo
 import com.github.flinkalt.typeinfo.auto._
+import com.github.flinkalt.typeinfo.serializer.{DeserializationState, SerializationState}
 import org.scalacheck.Arbitrary
 import org.scalacheck.ScalacheckShapeless._
 import org.scalatest.PropSpec
@@ -13,7 +14,7 @@ import shapeless.{Coproduct, HList, the}
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
-class PrimitiveSerializerTest extends PropSpec with GeneratorDrivenPropertyChecks {
+class TypeInfo1_PrimitivesTest extends PropSpec with GeneratorDrivenPropertyChecks {
 
   property("Booleans are serialized plainly") {
     forAllRoundTrip[Boolean]()

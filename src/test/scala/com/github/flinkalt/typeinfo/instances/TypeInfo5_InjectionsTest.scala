@@ -1,4 +1,4 @@
-package com.github.flinkalt.typeinfo.serializer
+package com.github.flinkalt.typeinfo.instances
 
 import com.github.flinkalt.typeinfo.Injection
 import com.github.flinkalt.typeinfo.auto._
@@ -7,7 +7,7 @@ import org.scalatest.PropSpec
 
 import scala.util.matching.Regex
 
-class InjectSerializerTest extends PropSpec with RefSerializerHelper {
+class TypeInfo5_InjectionsTest extends PropSpec with RefSerializerHelper {
 
   // apparently shapeless can derive a Generic instance for ordinary classes with constructor parameters as vals
   // in that case, our injection instance below is unnecessary (though still has priority)

@@ -19,6 +19,7 @@ val versions = new {
   val slf4j = "1.7.25"
   val paradise = "2.1.0"
   val scalaJavaTime = "2.0.0-M13"
+  val silencer = "1.0"
 }
 
 lazy val compileDependencies = Seq(
@@ -28,7 +29,8 @@ lazy val compileDependencies = Seq(
   "com.github.mpilquist" %% "simulacrum" % versions.simulacrum,
   "org.typelevel" %% "cats-core" % versions.cats,
   "io.github.cquiroz" %% "scala-java-time" % versions.scalaJavaTime,
-  "net.sf.trove4j" % "trove4j" % "3.0.3"
+  "net.sf.trove4j" % "trove4j" % "3.0.3",
+  "com.github.ghik" %% "silencer-lib" % versions.silencer
 )
 
 lazy val testDependencies = Seq(
@@ -60,7 +62,8 @@ lazy val commonSettings = Seq(
   ),
   libraryDependencies ++= compileDependencies ++ testDependencies,
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")
+  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6"),
+  addCompilerPlugin("com.github.ghik" %% "silencer-plugin" % versions.silencer)
 )
 
 lazy val root = Project("flink-alt", file("."))
