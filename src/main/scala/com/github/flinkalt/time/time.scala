@@ -15,4 +15,10 @@ package object time {
     @inline def millis: Duration = Duration(value)
     @inline def milli: Duration = Duration(value)
   }
+
+  implicit class LongTimeExt(val value: Long) extends AnyVal {
+    @inline def toInstant: Instant = Instant(value)
+
+    @inline def toDuration: Duration = Duration(value)
+  }
 }
