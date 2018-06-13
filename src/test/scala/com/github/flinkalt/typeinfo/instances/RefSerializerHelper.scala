@@ -16,7 +16,7 @@ trait RefSerializerHelper extends GeneratorDrivenPropertyChecks with Assertions 
 
   def forAllRoundTrip[T <: AnyRef : TypeInfo : Arbitrary](): Unit = {
     forAll { value: T =>
-      roundTripWithSerializer(value)
+      roundTrip(value)
     }
   }
 
@@ -24,12 +24,12 @@ trait RefSerializerHelper extends GeneratorDrivenPropertyChecks with Assertions 
 
   def forAllRoundTripWithPair[T <: AnyRef : TypeInfo : Arbitrary](): Unit = {
     forAll { value: T =>
-      val copy = roundTripWithSerializer(Pair(value, value))
+      val copy = roundTrip(Pair(value, value))
       assert(copy.p1 eq copy.p2)
     }
   }
 
-  def roundTripWithSerializer[T <: AnyRef : TypeInfo](value: T): T = {
+  def roundTrip[T <: AnyRef : TypeInfo](value: T): T = {
     val typeInfo = TypeInfo[T]
     val ser = typeInfo
     val bos = new ByteArrayOutputStream()

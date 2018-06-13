@@ -48,7 +48,7 @@ def zipWithCount[T]: StateTrans[T, Int, T, Count[T]] = {
     - primitives: `Boolean`, `Byte`, `Short`, `Char`, `Int`, `Long`, `Float`, `Double`, `Unit` 
     - common types: `String`, `Option`, `Either`, `cats.data.Validated`)
     - byte arrays
-    - some collections: `List`, `Vector` and `Map` (not for all `Traversable` because scala's `CanBuild` instances are not serializable)
+    - some collections: `Seq`, `IndexedSeq`, `List`, `Vector`, `Set`, `Map` and `ListMap` (not for all `Traversable` because scala's `CanBuild` instances are not serializable)
     - injections, that is, representing some types as another that has `TypeInfo`
     - ADTs, using *shapeless*, that is, any case class or sealed trait for which *shapeless* can derive `Generic`  
  - deduplication of data:

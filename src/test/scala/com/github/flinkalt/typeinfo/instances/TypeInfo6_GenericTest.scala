@@ -112,7 +112,7 @@ class TypeInfo6_GenericTest extends PropSpec with RefSerializerHelper {
   property("Serialize a case class with options of different types") {
     case class Foo(a: Option[Int], b: Option[Double])
 
-    val copy = roundTripWithSerializer(Foo(Some(0), Some(0.0)))
+    val copy = roundTrip(Foo(Some(0), Some(0.0)))
     val i: Int = copy.a.get
     val d: Double = copy.b.get
 
@@ -124,7 +124,7 @@ class TypeInfo6_GenericTest extends PropSpec with RefSerializerHelper {
     case class Foo(a: List[Vector[Int]], b: Vector[List[Int]])
 
     val value = Foo(List(Vector(1)), Vector(List(1)))
-    val copy = roundTripWithSerializer(value)
+    val copy = roundTrip(value)
 
     val a: List[Vector[Int]] = copy.a
     val ah: Vector[Int] = a.head
@@ -142,7 +142,7 @@ class TypeInfo6_GenericTest extends PropSpec with RefSerializerHelper {
     case class Bar(i: Foo[Int], d: Foo[Double])
 
     val value = Bar(Foo(0), Foo(0.0))
-    val copy = roundTripWithSerializer(value)
+    val copy = roundTrip(value)
 
     assert(copy.i.value == 0)
     assert(copy.d.value == 0.0)
@@ -152,7 +152,7 @@ class TypeInfo6_GenericTest extends PropSpec with RefSerializerHelper {
     case class Bar(i: Int, d: Double)
 
     val value = Bar(0, 0.0)
-    val copy = roundTripWithSerializer(value)
+    val copy = roundTrip(value)
 
     assert(copy.i == 0)
     assert(copy.d == 0.0)
@@ -166,6 +166,6 @@ class TypeInfo6_GenericTest extends PropSpec with RefSerializerHelper {
 
   property("Serialize a particular recursive coproduct") {
     val value = Tree("foo", List(Tree("bar", List())))
-    roundTripWithSerializer(value)
+    roundTrip(value)
   }
 }

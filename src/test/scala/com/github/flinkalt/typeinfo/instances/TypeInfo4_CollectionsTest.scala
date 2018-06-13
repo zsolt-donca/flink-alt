@@ -3,6 +3,8 @@ package com.github.flinkalt.typeinfo.instances
 import com.github.flinkalt.typeinfo.auto._
 import org.scalatest.PropSpec
 
+import scala.collection.immutable.ListMap
+
 class TypeInfo4_CollectionsTest extends PropSpec with RefSerializerHelper {
   property("Lists of ints are serialized") {
     forAllRoundTrip[List[Int]]()
@@ -12,12 +14,28 @@ class TypeInfo4_CollectionsTest extends PropSpec with RefSerializerHelper {
     forAllRoundTrip[Vector[Int]]()
   }
 
-  property("Sets of strings are serialized") {
+  property("Vectors of strings are serialized") {
     forAllRoundTrip[Vector[String]]()
+  }
+
+  property("Seqs of strings are serialized") {
+    forAllRoundTrip[Seq[String]]()
+  }
+
+  property("IndexedSeqs of strings are serialized") {
+    forAllRoundTrip[IndexedSeq[String]]()
+  }
+
+  property("Sets of strings are serialized") {
+    forAllRoundTrip[Set[String]]()
   }
 
   property("Maps of strings are serialized") {
     forAllRoundTrip[Map[String, String]]()
+  }
+
+  property("ListMaps of strings are serialized") {
+    forAllRoundTrip[ListMap[String, String]]()
   }
 
   property("Vectors of products are serialized") {
@@ -40,10 +58,10 @@ class TypeInfo4_CollectionsTest extends PropSpec with RefSerializerHelper {
   }
 
   property("Empty equal collections of different types are serialized correctly") {
-    roundTripWithSerializer(Test(List.empty, Vector.empty))
+    roundTrip(Test(List.empty, Vector.empty))
   }
 
   property("Non-empty equal collections of different types are serialized correctly") {
-    roundTripWithSerializer(Test(List(42), Vector(42)))
+    roundTrip(Test(List(42), Vector(42)))
   }
 }

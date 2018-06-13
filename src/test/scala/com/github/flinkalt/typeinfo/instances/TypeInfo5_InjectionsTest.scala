@@ -2,6 +2,7 @@ package com.github.flinkalt.typeinfo.instances
 
 import com.github.flinkalt.typeinfo.Injection
 import com.github.flinkalt.typeinfo.auto._
+import com.github.flinkalt.typeinfo.injections.Injections
 import org.scalacheck.Arbitrary
 import org.scalatest.PropSpec
 
@@ -63,5 +64,29 @@ class TypeInfo5_InjectionsTest extends PropSpec with RefSerializerHelper {
 
   property("Injection of the string pair as another pair") {
     forAllRoundTripWithPair[StringPair]()
+  }
+
+  property("Throwable is serialized") {
+    implicit def throwableSerializedInjection: Injection[Throwable, Array[Byte]] = Injections.byteArrayInjection[Throwable]
+
+    // Throwables in general don't have equals and hashcode defined...
+    case class Holder(throwable: Throwable) {
+      def canEqual(other: Any): Boolean = other.isInstanceOf[Holder]
+
+      override def equals(other: Any): Boolean = other match {
+        case that: Holder =>
+          (that canEqual this) &&
+            throwable.getMessage == that.throwable.getMessage &&
+            (throwable.getStackTrace sameElements that.throwable.getStackTrace)
+        case _ => false
+      }
+      override def hashCode(): Int = {
+        val state = Seq(throwable.getMessage, throwable.getStackTrace.toSeq)
+        state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+      }
+    }
+
+    val rte = new RuntimeException("test")
+    roundTrip[Holder](Holder(rte))
   }
 }

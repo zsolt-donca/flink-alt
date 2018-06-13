@@ -1,5 +1,6 @@
 package com.github.flinkalt.typeinfo
 
+import cats.data.ValidatedNel
 import com.github.flinkalt.Data
 import com.github.flinkalt.typeinfo.auto._
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -16,6 +17,16 @@ class FlinkTypeInformationDerivationTest extends FunSuite {
   case object Yes extends Choice
   case object No extends Choice
   case class Other(reason: String) extends Choice
+
+  sealed trait ErrorType
+  case class SomeError(reason: String) extends ErrorType
+  case object SomeUnknownError extends ErrorType
+  case class SomeException(ex: Throwable) extends ErrorType
+
+  implicit def throwableToByteArrayInjection: Injection[Throwable, Array[Byte]] = Injection(
+    _ => sys.error("The implementation is irrelevant"),
+    _ => sys.error("The implementation is irrelevant")
+  )
 
   test("Type info various types") {
     implicitly[TypeInformation[String]]
@@ -88,6 +99,13 @@ class FlinkTypeInformationDerivationTest extends FunSuite {
   test("Type information equality of recursive coproduct") {
     def t1 = implicitly[TypeInformation[Tree[Int]]]
     def t2 = implicitly[TypeInformation[Tree[Int]]]
+
+    assertEqualDifferentReferences(t1, t2)
+  }
+
+  test("Type information for errors or something") {
+    val t1 = implicitly[TypeInformation[ValidatedNel[ErrorType, String]]]
+    val t2 = implicitly[TypeInformation[ValidatedNel[ErrorType, String]]]
 
     assertEqualDifferentReferences(t1, t2)
   }

@@ -6,6 +6,7 @@ import com.github.flinkalt.typeinfo.serializer.{DeserializationState, RefSeriali
 import com.github.flinkalt.typeinfo.{SerializerBasedTypeInfo, TypeInfo}
 
 import scala.collection.generic.CanBuild
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 abstract class CollectionTypeInfo[C[e] <: Traversable[e], T](implicit typeInfo: TypeInfo[T], ct: ClassTag[C[T]])
@@ -70,7 +71,23 @@ trait TypeInfo4_Collections extends TypeInfo5_Injections {
     override def canBuild: CanBuild[T, Vector[T]] = Vector.canBuildFrom[T]
   }
 
-  implicit def maTypeInfo[K: TypeInfo, V: TypeInfo]: MapTypeInfo[Map, K, V] = new MapTypeInfo[Map, K, V]() {
+  implicit def seqTypeInfo[T: TypeInfo]: CollectionTypeInfo[Seq, T] = new CollectionTypeInfo[Seq, T]() {
+    override def canBuild: CanBuild[T, Seq[T]] = Seq.canBuildFrom[T]
+  }
+
+  implicit def indexedSeqTypeInfo[T: TypeInfo]: CollectionTypeInfo[IndexedSeq, T] = new CollectionTypeInfo[IndexedSeq, T]() {
+    override def canBuild: CanBuild[T, IndexedSeq[T]] = IndexedSeq.canBuildFrom[T]
+  }
+
+  implicit def collectionSetTypeInfo[T: TypeInfo]: CollectionTypeInfo[Set, T] = new CollectionTypeInfo[Set, T]() {
+    override def canBuild: CanBuild[T, Set[T]] = Set.canBuildFrom[T]
+  }
+
+  implicit def mapTypeInfo[K: TypeInfo, V: TypeInfo]: MapTypeInfo[Map, K, V] = new MapTypeInfo[Map, K, V]() {
     override def canBuild: CanBuild[(K, V), Map[K, V]] = Map.canBuildFrom[K, V]
+  }
+
+  implicit def listMapTypeInfo[K: TypeInfo, V: TypeInfo]: MapTypeInfo[ListMap, K, V] = new MapTypeInfo[ListMap, K, V]() {
+    override def canBuild: CanBuild[(K, V), ListMap[K, V]] = ListMap.canBuildFrom[K, V]
   }
 }
