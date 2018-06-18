@@ -25,7 +25,7 @@ final class TypeInfoBasedTypeSerializer[T](private val typeInfo: TypeInfo[T]) ex
 
   override def deserialize(source: DataInputView): T = typeInfo.deserialize(source, new DeserializationState)
 
-  override def snapshotConfiguration(): TypeSerializerConfigSnapshot = new ParameterlessTypeSerializerConfig
+  override def snapshotConfiguration(): TypeSerializerConfigSnapshot = new ParameterlessTypeSerializerConfig("")
 
   override def ensureCompatibility(configSnapshot: TypeSerializerConfigSnapshot): CompatibilityResult[T] = CompatibilityResult.compatible()
 
