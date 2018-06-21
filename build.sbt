@@ -7,7 +7,7 @@ lazy val buildSettings = Seq(
 )
 
 val versions = new {
-  val flink = "1.4.0"
+  val flink = "1.5.0"
   val cats = "1.0.1"
   val simulacrum = "0.12.0"
   val shapeless = "2.3.3"
