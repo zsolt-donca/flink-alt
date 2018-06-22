@@ -2,7 +2,7 @@
 lazy val buildSettings = Seq(
   organization := "com.github",
   name := "flink-alt",
-  version := "0.5-SNAPSHOT",
+  version := "0.5",
   scalaVersion := "2.11.12"
 )
 
