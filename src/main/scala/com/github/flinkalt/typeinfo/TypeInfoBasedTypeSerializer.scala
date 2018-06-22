@@ -1,10 +1,16 @@
 package com.github.flinkalt.typeinfo
 
 import com.github.flinkalt.typeinfo.serializer.{DeserializationState, SerializationState}
+import com.twitter.chill.MeatLocker
 import org.apache.flink.api.common.typeutils.{CompatibilityResult, ParameterlessTypeSerializerConfig, TypeSerializer, TypeSerializerConfigSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
-final class TypeInfoBasedTypeSerializer[T](private val typeInfo: TypeInfo[T]) extends TypeSerializer[T] {
+final class TypeInfoBasedTypeSerializer[T](_typeInfo: TypeInfo[T]) extends TypeSerializer[T] {
+
+  private[this] val meatLocker: MeatLocker[TypeInfo[T]] = MeatLocker(_typeInfo)
+
+  private def typeInfo: TypeInfo[T] = meatLocker.get
+
   override def duplicate(): TypeSerializer[T] = this
 
   override def isImmutableType: Boolean = true
