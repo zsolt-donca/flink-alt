@@ -19,8 +19,8 @@ val versions = new {
 }
 
 lazy val compileDependencies = Seq(
-  "org.apache.flink" %% "flink-scala" % versions.flink,
-  "org.apache.flink" %% "flink-streaming-scala" % versions.flink,
+  "org.apache.flink" %% "flink-scala" % versions.flink % "provided",
+  "org.apache.flink" %% "flink-streaming-scala" % versions.flink % "provided",
   "com.chuusai" %% "shapeless" % versions.shapeless,
   "com.github.mpilquist" %% "simulacrum" % versions.simulacrum,
   "org.typelevel" %% "cats-core" % versions.cats,
