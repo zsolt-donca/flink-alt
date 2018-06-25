@@ -13,7 +13,9 @@ import org.scalatest.FunSuite
 import scala.collection.JavaConverters._
 
 class FlinkTypeSerializerSerializationTest extends FunSuite {
-  test("Generic type serializers can be serialized by Flink") {
+
+  // see https://issues.apache.org/jira/browse/FLINK-9654
+  ignore("Generic type serializers can be serialized by Flink") {
     val typeInfo = SerializerHelper.createTypeInfoForGenericTypeInObject()
 
     assertRoundTripOfSerializerAndConfig(typeInfo)
