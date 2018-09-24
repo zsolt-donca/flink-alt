@@ -1,7 +1,7 @@
 package com.github.flinkalt.typeinfo
 
 import cats.data.ValidatedNel
-import com.github.flinkalt.Data
+import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.typeinfo.auto._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.scalatest.FunSuite
@@ -37,8 +37,8 @@ class FlinkTypeInformationDerivationTest extends FunSuite {
   test("Type info of ADTs") {
     implicitly[TypeInformation[(String, Long, Int)]]
 
-    implicitly[TypeInformation[Data[String]]]
-    implicitly[TypeInformation[Envelope[Data[String]]]]
+    implicitly[TypeInformation[DataAndWatermark[String]]]
+    implicitly[TypeInformation[Envelope[DataAndWatermark[String]]]]
 
     implicitly[TypeInformation[Tree[String]]]
   }
@@ -48,7 +48,7 @@ class FlinkTypeInformationDerivationTest extends FunSuite {
     envelopeTypeInfo[String]
     envelopeTypeInfo[(String, Int, Long)]
 
-    def dataTypeInfo[T: TypeInfo]: TypeInfo[Data[T]] = TypeInfo[Data[T]]
+    def dataTypeInfo[T: TypeInfo]: TypeInfo[DataAndWatermark[T]] = TypeInfo[DataAndWatermark[T]]
     dataTypeInfo[String]
     dataTypeInfo[(String, Int, Long)]
   }

@@ -14,9 +14,9 @@ object MemoryStateful extends Stateful[MemoryStream] {
   }
 
   override def flatMapWithState[K: TypeInfo, S: TypeInfo, A, B: TypeInfo](f: MemoryStream[A])(stateTrans: StateTrans[K, S, A, Vector[B]]): MemoryStream[B] = {
-    val trans: MemoryElem[A] => State[Map[K, S], Vector[MemoryElem[B]]] = {
-      case MemoryData(time, value) => stateByKey(stateTrans.key(value), stateTrans.trans(value)).map(v => v.map(b => MemoryData(time, b)))
-      case MemoryWatermark(time) => State.pure(Vector(MemoryWatermark(time)))
+    val trans: DataOrWatermark[A] => State[Map[K, S], Vector[DataOrWatermark[B]]] = {
+      case JustData(time, value) => stateByKey(stateTrans.key(value), stateTrans.trans(value)).map(v => v.map(b => JustData(time, b)))
+      case JustWatermark(time) => State.pure(Vector(JustWatermark(time)))
     }
     val elems = f.elems.flatTraverse(trans).runA(Map.empty).value
     f.copy(elems = elems)

@@ -5,6 +5,7 @@ import cats.instances.long._
 import cats.instances.string._
 import com.github.flinkalt.flink._
 import com.github.flinkalt.flink.helper._
+import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.typeinfo._
 import com.github.flinkalt.typeinfo.auto._
 import org.apache.flink.streaming.api.TimeCharacteristic.EventTime
@@ -51,25 +52,25 @@ class FlinkDataStreamTest extends FunSuite {
 
     val actual = collector.toVector
 
-    implicit def dataOrder[T]: Order[Data[T]] = Order.whenEqual(Order.by(_.time.millis), Order.by(_.value.toString))
+    implicit def dataOrder[T]: Order[DataAndWatermark[T]] = Order.whenEqual(Order.by(_.time.millis), Order.by(_.value.toString))
     implicit def toOrdering[T: Order]: Ordering[T] = Order[T].toOrdering
 
     assert(actual.sorted == testCase.output.sorted)
   }
 
-  private def createSource[A: TypeInfo](env: StreamExecutionEnvironment, vector: Vector[Data[A]]): DataStream[A] = {
+  private def createSource[A: TypeInfo](env: StreamExecutionEnvironment, vector: Vector[DataAndWatermark[A]]): DataStream[A] = {
     env.fromCollection(vector)
       .assignTimestampsAndWatermarks(dataTimestampExtractor[A])
       .map(data => data.value)
   }
 
-  private def dataTimestampExtractor[A]: AssignerWithPunctuatedWatermarks[Data[A]] = {
-    new AssignerWithPunctuatedWatermarks[Data[A]] {
-      override def extractTimestamp(element: Data[A], previousElementTimestamp: Long): Long = {
+  private def dataTimestampExtractor[A]: AssignerWithPunctuatedWatermarks[DataAndWatermark[A]] = {
+    new AssignerWithPunctuatedWatermarks[DataAndWatermark[A]] {
+      override def extractTimestamp(element: DataAndWatermark[A], previousElementTimestamp: Long): Long = {
         element.time.millis
       }
 
-      override def checkAndGetNextWatermark(lastElement: Data[A], extractedTimestamp: Long): Watermark = {
+      override def checkAndGetNextWatermark(lastElement: DataAndWatermark[A], extractedTimestamp: Long): Watermark = {
         new Watermark(lastElement.watermark.millis)
       }
     }

@@ -3,7 +3,7 @@ package com.github.flinkalt.flink.helper
 import java.io.{IOException, OutputStream}
 import java.net.{InetAddress, Socket}
 
-import com.github.flinkalt.Data
+import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.time.Instant
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.configuration.Configuration
@@ -17,7 +17,7 @@ import org.apache.flink.streaming.api.functions.sink.{RichSinkFunction, SinkFunc
   * @param port       Port of the Socket server.
   * @param serializer A serializer for the data.
   */
-class CollectSink[IN](val hostIp: InetAddress, val port: Int, val serializer: TypeSerializer[Data[IN]]) extends RichSinkFunction[IN] {
+class CollectSink[IN](val hostIp: InetAddress, val port: Int, val serializer: TypeSerializer[DataAndWatermark[IN]]) extends RichSinkFunction[IN] {
 
   private var client: Socket = _
   private var outputStream: OutputStream = _
@@ -44,7 +44,7 @@ class CollectSink[IN](val hostIp: InetAddress, val port: Int, val serializer: Ty
       val timestampOrNull = context.timestamp()
       val time = Instant(Option(timestampOrNull).map(_.longValue()).getOrElse(-1))
       val watermark = Instant(context.currentWatermark())
-      val data = Data(time, watermark, value)
+      val data = DataAndWatermark(time, watermark, value)
       serializer.serialize(data, streamWriter)
     }
     catch {

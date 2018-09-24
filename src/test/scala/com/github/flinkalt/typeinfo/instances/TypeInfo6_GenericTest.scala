@@ -1,6 +1,6 @@
 package com.github.flinkalt.typeinfo.instances
 
-import com.github.flinkalt.Data
+import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.typeinfo.auto._
 import org.scalatest.PropSpec
 
@@ -43,7 +43,7 @@ class TypeInfo6_GenericTest extends PropSpec with RefSerializerHelper {
 
   property("Envelope with stuff in it") {
     case class Envelope[T](s: String, i: Int, contents: T)
-    forAllRoundTrip[Envelope[Data[(String, Int)]]]()
+    forAllRoundTrip[Envelope[DataAndWatermark[(String, Int)]]]()
   }
 
   property("Coproduct with one case") {

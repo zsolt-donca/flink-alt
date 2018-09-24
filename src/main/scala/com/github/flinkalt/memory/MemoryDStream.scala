@@ -11,15 +11,15 @@ object MemoryDStream extends DStream[MemoryStream] {
 
   override def filter[T](f: MemoryStream[T])(predicate: T => Boolean): MemoryStream[T] = {
     f.copy(elems = f.elems.filter {
-      case MemoryData(_, value) => predicate(value)
-      case MemoryWatermark(_) => true
+      case JustData(_, value) => predicate(value)
+      case JustWatermark(_) => true
     })
   }
 
   override def flatMap[T, U: TypeInfo](f: MemoryStream[T])(fun: T => Seq[U]): MemoryStream[U] = {
     f.copy(elems = f.elems.flatMap {
-      case MemoryData(time, value) => fun(value).map(u => MemoryData(time, u))
-      case MemoryWatermark(time) => List(MemoryWatermark(time))
+      case JustData(time, value) => fun(value).map(u => JustData(time, u))
+      case JustWatermark(time) => List(JustWatermark(time))
     })
   }
 

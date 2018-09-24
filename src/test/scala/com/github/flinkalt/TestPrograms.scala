@@ -2,8 +2,8 @@ package com.github.flinkalt
 
 import cats.data.State
 import cats.instances.int._
-import cats.instances.list._
 import cats.kernel.Semigroup
+import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.time._
 import com.github.flinkalt.typeinfo.auto._
 
@@ -28,8 +28,8 @@ trait DStreamFun[A, B] {
 
 case class TestCase[A, B]
 (
-  input: Vector[Data[A]],
-  output: Vector[Data[B]],
+  input: Vector[DataAndWatermark[A]],
+  output: Vector[DataAndWatermark[B]],
   program: DStreamFun[A, B]
 )
 
@@ -63,12 +63,12 @@ object TestPrograms {
     ),
     // watermark lags behind when doing simple transformations as well, without any effect
     output = Vector(
-      Data(time = at(0 seconds), watermark = Instant.minValue, "odd: 5"),
-      Data(time = at(0 seconds), watermark = Instant.minValue, "even: 2"),
-      Data(time = at(1 seconds), watermark = at(0 seconds), "odd: 15"),
-      Data(time = at(1 seconds), watermark = at(0 seconds), "odd: 7"),
-      Data(time = at(3 seconds), watermark = at(2 seconds), "even: 10"),
-      Data(time = at(3 seconds), watermark = at(2 seconds), "odd: 5")
+      DataAndWatermark(time = at(0 seconds), watermark = Instant.minValue, "odd: 5"),
+      DataAndWatermark(time = at(0 seconds), watermark = Instant.minValue, "even: 2"),
+      DataAndWatermark(time = at(1 seconds), watermark = at(0 seconds), "odd: 15"),
+      DataAndWatermark(time = at(1 seconds), watermark = at(0 seconds), "odd: 7"),
+      DataAndWatermark(time = at(3 seconds), watermark = at(2 seconds), "even: 10"),
+      DataAndWatermark(time = at(3 seconds), watermark = at(2 seconds), "odd: 5")
     ),
     program = new DStreamFun[Int, String] {
       override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[String] = numberJuggling
@@ -92,13 +92,13 @@ object TestPrograms {
     ),
     // watermarks are always lagging behind, coming from the previous value (and thus Long.MinValue for the first)
     output = Vector(
-      Data(time = at(0 seconds), watermark = Instant.minValue, Count("x", 1)),
-      Data(time = at(1 seconds), watermark = at(0 seconds), Count("y", 1)),
-      Data(time = at(1 seconds), watermark = at(0 seconds), Count("z", 1)),
-      Data(time = at(5 seconds), watermark = at(2 seconds), Count("z", 2)),
-      Data(time = at(5 seconds), watermark = at(2 seconds), Count("q", 1)),
-      Data(time = at(5 seconds), watermark = at(2 seconds), Count("y", 2)),
-      Data(time = at(5 seconds), watermark = at(2 seconds), Count("y", 3))
+      DataAndWatermark(time = at(0 seconds), watermark = Instant.minValue, Count("x", 1)),
+      DataAndWatermark(time = at(1 seconds), watermark = at(0 seconds), Count("y", 1)),
+      DataAndWatermark(time = at(1 seconds), watermark = at(0 seconds), Count("z", 1)),
+      DataAndWatermark(time = at(5 seconds), watermark = at(2 seconds), Count("z", 2)),
+      DataAndWatermark(time = at(5 seconds), watermark = at(2 seconds), Count("q", 1)),
+      DataAndWatermark(time = at(5 seconds), watermark = at(2 seconds), Count("y", 2)),
+      DataAndWatermark(time = at(5 seconds), watermark = at(2 seconds), Count("y", 3))
     ),
     program = new DStreamFun[String, Count[String]] {
       override def apply[DS[_] : DStream : Windowed : Stateful]: DS[String] => DS[Count[String]] = totalWordCount
@@ -121,22 +121,22 @@ object TestPrograms {
       syncedData(at(6 seconds), "z q y y")
     ),
     output = Vector(
-      Data(time = justBefore(2 seconds), watermark = at(0 seconds), Count("x", 1)),
+      DataAndWatermark(time = justBefore(2 seconds), watermark = at(0 seconds), Count("x", 1)),
 
-      Data(time = justBefore(4 seconds), watermark = at(3 seconds), Count("x", 1)),
-      Data(time = justBefore(4 seconds), watermark = at(3 seconds), Count("y", 2)),
-      Data(time = justBefore(4 seconds), watermark = at(3 seconds), Count("z", 1)),
+      DataAndWatermark(time = justBefore(4 seconds), watermark = at(3 seconds), Count("x", 1)),
+      DataAndWatermark(time = justBefore(4 seconds), watermark = at(3 seconds), Count("y", 2)),
+      DataAndWatermark(time = justBefore(4 seconds), watermark = at(3 seconds), Count("z", 1)),
 
-      Data(time = justBefore(6 seconds), watermark = at(3 seconds), Count("y", 2)),
-      Data(time = justBefore(6 seconds), watermark = at(3 seconds), Count("z", 1)),
+      DataAndWatermark(time = justBefore(6 seconds), watermark = at(3 seconds), Count("y", 2)),
+      DataAndWatermark(time = justBefore(6 seconds), watermark = at(3 seconds), Count("z", 1)),
 
-      Data(time = justBefore(8 seconds), watermark = at(6 seconds), Count("y", 2)),
-      Data(time = justBefore(8 seconds), watermark = at(6 seconds), Count("q", 1)),
-      Data(time = justBefore(8 seconds), watermark = at(6 seconds), Count("z", 1)),
+      DataAndWatermark(time = justBefore(8 seconds), watermark = at(6 seconds), Count("y", 2)),
+      DataAndWatermark(time = justBefore(8 seconds), watermark = at(6 seconds), Count("q", 1)),
+      DataAndWatermark(time = justBefore(8 seconds), watermark = at(6 seconds), Count("z", 1)),
 
-      Data(time = justBefore(10 seconds), watermark = at(6 seconds), Count("q", 1)),
-      Data(time = justBefore(10 seconds), watermark = at(6 seconds), Count("y", 2)),
-      Data(time = justBefore(10 seconds), watermark = at(6 seconds), Count("z", 1))
+      DataAndWatermark(time = justBefore(10 seconds), watermark = at(6 seconds), Count("q", 1)),
+      DataAndWatermark(time = justBefore(10 seconds), watermark = at(6 seconds), Count("y", 2)),
+      DataAndWatermark(time = justBefore(10 seconds), watermark = at(6 seconds), Count("z", 1))
     ),
     program = new DStreamFun[String, Count[String]] {
       override def apply[DS[_] : DStream : Windowed : Stateful]: DS[String] => DS[Count[String]] = {
@@ -169,17 +169,17 @@ object TestPrograms {
       syncedData(at(12 seconds), 7)
     ),
     output = Vector(
-      Data(time = justBefore(5 seconds), watermark = at(3 seconds), (Small, Window(start = at(-5 seconds), end = at(5 seconds)), 1 + 2 + 3 + 3)),
-      Data(time = justBefore(5 seconds), watermark = at(3 seconds), (Large, Window(start = at(-5 seconds), end = at(5 seconds)), 10 + 12)),
+      DataAndWatermark(time = justBefore(5 seconds), watermark = at(3 seconds), (Small, Window(start = at(-5 seconds), end = at(5 seconds)), 1 + 2 + 3 + 3)),
+      DataAndWatermark(time = justBefore(5 seconds), watermark = at(3 seconds), (Large, Window(start = at(-5 seconds), end = at(5 seconds)), 10 + 12)),
 
-      Data(time = justBefore(10 seconds), watermark = at(7 seconds), (Small, Window(start = at(0 seconds), end = at(10 seconds)), 1 + 2 + 3 + 3 + 4)),
-      Data(time = justBefore(10 seconds), watermark = at(7 seconds), (Large, Window(start = at(0 seconds), end = at(10 seconds)), 10 + 12 + 13)),
+      DataAndWatermark(time = justBefore(10 seconds), watermark = at(7 seconds), (Small, Window(start = at(0 seconds), end = at(10 seconds)), 1 + 2 + 3 + 3 + 4)),
+      DataAndWatermark(time = justBefore(10 seconds), watermark = at(7 seconds), (Large, Window(start = at(0 seconds), end = at(10 seconds)), 10 + 12 + 13)),
 
-      Data(time = justBefore(15 seconds), watermark = at(12 seconds), (Large, Window(start = at(5 seconds), end = at(15 seconds)), 13 + 11)),
-      Data(time = justBefore(15 seconds), watermark = at(12 seconds), (Small, Window(start = at(5 seconds), end = at(15 seconds)), 4 + 7)),
+      DataAndWatermark(time = justBefore(15 seconds), watermark = at(12 seconds), (Large, Window(start = at(5 seconds), end = at(15 seconds)), 13 + 11)),
+      DataAndWatermark(time = justBefore(15 seconds), watermark = at(12 seconds), (Small, Window(start = at(5 seconds), end = at(15 seconds)), 4 + 7)),
 
-      Data(time = justBefore(20 seconds), watermark = at(12 seconds), (Large, Window(start = at(10 seconds), end = at(20 seconds)), 11)),
-      Data(time = justBefore(20 seconds), watermark = at(12 seconds), (Small, Window(start = at(10 seconds), end = at(20 seconds)), 7))
+      DataAndWatermark(time = justBefore(20 seconds), watermark = at(12 seconds), (Large, Window(start = at(10 seconds), end = at(20 seconds)), 11)),
+      DataAndWatermark(time = justBefore(20 seconds), watermark = at(12 seconds), (Small, Window(start = at(10 seconds), end = at(20 seconds)), 7))
     ),
     program = new DStreamFun[Int, (Size, Window, Int)] {
       override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[(Size, Window, Int)] = {
@@ -198,26 +198,26 @@ object TestPrograms {
 
   val totalSlidingSumsTestCase = TestCase(
     input = Vector(
-      Data(time = at(1 seconds), watermark = at(1 seconds), value = 1),
-      Data(time = at(2 seconds), watermark = at(1 seconds), value = 2),
-      Data(time = at(3 seconds), watermark = at(1 seconds), value = 3),
-      Data(time = at(4 seconds), watermark = at(1 seconds), value = 4),
-      Data(time = at(5 seconds), watermark = at(3 seconds), value = 5),
-      Data(time = at(6 seconds), watermark = at(3 seconds), value = 6),
-      Data(time = at(7 seconds), watermark = at(3 seconds), value = 7),
-      Data(time = at(8 seconds), watermark = at(6 seconds), value = 8),
-      Data(time = at(9 seconds), watermark = at(6 seconds), value = 9)
+      DataAndWatermark(time = at(1 seconds), watermark = at(1 seconds), value = 1),
+      DataAndWatermark(time = at(2 seconds), watermark = at(1 seconds), value = 2),
+      DataAndWatermark(time = at(3 seconds), watermark = at(1 seconds), value = 3),
+      DataAndWatermark(time = at(4 seconds), watermark = at(1 seconds), value = 4),
+      DataAndWatermark(time = at(5 seconds), watermark = at(3 seconds), value = 5),
+      DataAndWatermark(time = at(6 seconds), watermark = at(3 seconds), value = 6),
+      DataAndWatermark(time = at(7 seconds), watermark = at(3 seconds), value = 7),
+      DataAndWatermark(time = at(8 seconds), watermark = at(6 seconds), value = 8),
+      DataAndWatermark(time = at(9 seconds), watermark = at(6 seconds), value = 9)
     ),
     output = Vector(
-      Data(time = justBefore(2 seconds), watermark = at(1 seconds), value = List(1)),
-      Data(time = justBefore(4 seconds), watermark = at(3 seconds), value = List(1, 2, 3)),
-      Data(time = justBefore(6 seconds), watermark = at(3 seconds), value = List(1, 2, 3, 4, 5)),
-      Data(time = justBefore(8 seconds), watermark = at(6 seconds), value = List(1, 2, 3, 4, 5, 6, 7)),
-      Data(time = justBefore(10 seconds), watermark = at(6 seconds), value = List(1, 2, 3, 4, 5, 6, 7, 8, 9)),
-      Data(time = justBefore(12 seconds), watermark = at(6 seconds), value = List(2, 3, 4, 5, 6, 7, 8, 9)),
-      Data(time = justBefore(14 seconds), watermark = at(6 seconds), value = List(4, 5, 6, 7, 8, 9)),
-      Data(time = justBefore(16 seconds), watermark = at(6 seconds), value = List(6, 7, 8, 9)),
-      Data(time = justBefore(18 seconds), watermark = at(6 seconds), value = List(8, 9))
+      DataAndWatermark(time = justBefore(2 seconds), watermark = at(1 seconds), value = List(1)),
+      DataAndWatermark(time = justBefore(4 seconds), watermark = at(3 seconds), value = List(1, 2, 3)),
+      DataAndWatermark(time = justBefore(6 seconds), watermark = at(3 seconds), value = List(1, 2, 3, 4, 5)),
+      DataAndWatermark(time = justBefore(8 seconds), watermark = at(6 seconds), value = List(1, 2, 3, 4, 5, 6, 7)),
+      DataAndWatermark(time = justBefore(10 seconds), watermark = at(6 seconds), value = List(1, 2, 3, 4, 5, 6, 7, 8, 9)),
+      DataAndWatermark(time = justBefore(12 seconds), watermark = at(6 seconds), value = List(2, 3, 4, 5, 6, 7, 8, 9)),
+      DataAndWatermark(time = justBefore(14 seconds), watermark = at(6 seconds), value = List(4, 5, 6, 7, 8, 9)),
+      DataAndWatermark(time = justBefore(16 seconds), watermark = at(6 seconds), value = List(6, 7, 8, 9)),
+      DataAndWatermark(time = justBefore(18 seconds), watermark = at(6 seconds), value = List(8, 9))
     ),
     program = new DStreamFun[Int, List[Int]] {
       override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[List[Int]] = {
@@ -242,7 +242,7 @@ object TestPrograms {
       }))
   }
 
-  private def syncedData[T](time: Instant, value: T): Data[T] = Data(time, time, value)
+  private def syncedData[T](time: Instant, value: T): DataAndWatermark[T] = DataAndWatermark(time, time, value)
 
   private def at(duration: Duration): Instant = Instant(100000L) + duration
 

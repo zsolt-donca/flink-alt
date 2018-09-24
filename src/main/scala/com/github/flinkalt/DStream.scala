@@ -1,18 +1,7 @@
 package com.github.flinkalt
 
-import cats.Functor
-import com.github.flinkalt.time.Instant
 import com.github.flinkalt.typeinfo.TypeInfo
 import simulacrum.typeclass
-
-case class Data[+T](time: Instant, watermark: Instant, value: T)
-
-object Data {
-  implicit def functor: Functor[Data] = new Functor[Data] {
-    override def map[A, B](fa: Data[A])(f: A => B): Data[B] = fa.copy(value = f(fa.value))
-  }
-}
-
 
 @typeclass
 trait DStream[F[_]] {
