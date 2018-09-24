@@ -10,6 +10,7 @@ import com.github.flinkalt.Windowed.WindowMapper
 import com.github.flinkalt._
 import com.github.flinkalt.time._
 import com.github.flinkalt.typeinfo.TypeInfo
+import org.apache.flink.api.scala.ClosureCleaner
 
 object MemoryWindowed extends Windowed[MemoryStream] {
 
@@ -18,6 +19,9 @@ object MemoryWindowed extends Windowed[MemoryStream] {
   }
 
   override def windowReduceMapped[K: TypeInfo, A: Semigroup, B: TypeInfo](fa: MemoryStream[A])(windowType: WindowType, key: A => K)(trigger: WindowMapper[K, A, B]): MemoryStream[B] = {
+    ClosureCleaner.ensureSerializable(key)
+    ClosureCleaner.ensureSerializable(Some(implicitly[Semigroup[A]]))
+
     case class ReduceState(lastWatermark: Instant, windows: Map[Window, Map[K, A]])
     val trans: DataOrWatermark[A] => State[ReduceState, Vector[DataOrWatermark[B]]] = {
       case JustData(time, value) =>

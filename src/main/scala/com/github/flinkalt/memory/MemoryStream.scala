@@ -22,6 +22,8 @@ object MemoryStream {
   implicit def memoryStateful: Stateful[MemoryStream] = MemoryStateful
   implicit def memoryWindowed: Windowed[MemoryStream] = MemoryWindowed
 
+  def empty[T]: MemoryStream[T] = MemoryStream(Vector.empty)
+
   def fromData[T](inputData: Vector[DataAndWatermark[T]]): MemoryStream[T] = {
     val elems = inputData.flatMap {
       case DataAndWatermark(time, watermark, value) => List(JustData(time, value), JustWatermark(watermark))
