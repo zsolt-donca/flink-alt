@@ -13,4 +13,6 @@ object FlinkDStream extends DStream[DataStream] {
   override def collect[A, B: TypeInfo](f: DataStream[A])(pf: PartialFunction[A, B]): DataStream[B] = f.flatMap(a => pf.lift(a))
 
   override def filter[A](f: DataStream[A])(predicate: A => Boolean): DataStream[A] = f.filter(predicate)
+
+  override def union[A](f: DataStream[A])(g: DataStream[A]): DataStream[A] = f.union(g)
 }

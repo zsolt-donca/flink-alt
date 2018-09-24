@@ -14,6 +14,7 @@ import org.apache.flink.streaming.api.TimeCharacteristic.EventTime
 import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.api.watermark.Watermark
+import org.scalatest.Assertions
 
 // necessary boilerplate, Scala does not have built-in the concept of polymorphic functions
 // also, it turns out there can be many ways a function can be "polymorphic"
@@ -26,15 +27,18 @@ case class TestCase[A, B]
 (
   input: Vector[DataAndWatermark[A]],
   output: Vector[DataAndWatermark[B]],
-  program: DStreamFun[A, B]
+  program: DStreamFun[A, B],
+  deterministic: Boolean = false
 )
 
 
-object TestUtils {
+object TestUtils extends Assertions {
+
+  def numberAtSeconds(i: Int): DataAndWatermark[Int] = syncedData(at(i seconds), i)
 
   def syncedData[T](time: Instant, value: T): DataAndWatermark[T] = DataAndWatermark(time, time, value)
 
-  def at(duration: Duration): Instant = Instant(100000L) + duration
+  def at(duration: Duration): Instant = Instant(60 * 60 * 1000) + duration
 
   def justBefore(duration: Duration): Instant = at(duration) - (1 milli)
 
@@ -42,13 +46,13 @@ object TestUtils {
   def runTestCaseWithMemory[A: TypeInfo, B: TypeInfo](testCase: TestCase[A, B]): Unit = {
     val stream = MemoryStream.fromData(testCase.input)
     val outStream = testCase.program[MemoryStream].apply(stream)
-    val actual = outStream.toData
+    val actual = outStream.toPostData
 
-    implicit def dataOrder[T]: Order[DataAndWatermark[T]] = Order.whenEqual(Order.by(_.time.millis), Order.by(_.value.toString))
-
-    implicit def toOrdering[T: Order]: Ordering[T] = Order[T].toOrdering
-
-    assert(actual.sorted == testCase.output.sorted)
+    if (testCase.deterministic) {
+      assert(actual == testCase.output)
+    } else {
+      assert(actual.sorted == testCase.output.sorted)
+    }
   }
 
   def runTestCaseWithFlink[A: TypeInfo, B: TypeInfo](testCase: TestCase[A, B]): Unit = {
@@ -66,12 +70,16 @@ object TestUtils {
 
     val actual = collector.toVector
 
-    implicit def dataOrder[T]: Order[DataAndWatermark[T]] = Order.whenEqual(Order.by(_.time.millis), Order.by(_.value.toString))
-
-    implicit def toOrdering[T: Order]: Ordering[T] = Order[T].toOrdering
-
-    assert(actual.sorted == testCase.output.sorted)
+    if (testCase.deterministic) {
+      assert(actual == testCase.output)
+    } else {
+      assert(actual.sorted == testCase.output.sorted)
+    }
   }
+
+  private implicit def dataOrder[T]: Order[DataAndWatermark[T]] = Order.whenEqual(Order.by(_.time.millis), Order.by(_.value.toString))
+
+  private implicit def toOrdering[T: Order]: Ordering[T] = Order[T].toOrdering
 
   private def createFlinkSource[A: TypeInfo](env: StreamExecutionEnvironment, vector: Vector[DataAndWatermark[A]]): DataStream[A] = {
     env.fromCollection(vector)

@@ -9,4 +9,6 @@ trait DStream[F[_]] {
   def flatMap[A, B: TypeInfo](f: F[A])(fun: A => Seq[B]): F[B]
   def collect[A, B: TypeInfo](f: F[A])(pf: PartialFunction[A, B]): F[B]
   def filter[A](f: F[A])(predicate: A => Boolean): F[A]
+
+  def union[A](f: F[A])(g: F[A]): F[A]
 }

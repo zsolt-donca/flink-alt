@@ -1,7 +1,9 @@
 package com.github.flinkalt.memory
 
+import cats.Order
 import cats.syntax.functor._
 import com.github.flinkalt.DStream
+import com.github.flinkalt.time.Instant
 import com.github.flinkalt.typeinfo.TypeInfo
 import org.apache.flink.api.scala.ClosureCleaner
 
@@ -31,4 +33,13 @@ object MemoryDStream extends DStream[MemoryStream] {
     ClosureCleaner.ensureSerializable(pf)
     flatMap(f)(t => pf.lift(t).toList)
   }
+
+  override def union[A](f: MemoryStream[A])(g: MemoryStream[A]): MemoryStream[A] = {
+    val sortedData = (f.toPreData ++ g.toPreData).sorted
+    MemoryStream.fromData(sortedData)
+  }
+
+  private implicit def dataOrder[T]: Order[DataAndWatermark[T]] = Order.whenEqual(Order.by[DataAndWatermark[T], Instant](_.watermark), Order.by[DataAndWatermark[T], Instant](_.time))
+
+  private implicit def toOrdering[T: Order]: Ordering[T] = Order[T].toOrdering
 }

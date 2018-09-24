@@ -7,13 +7,22 @@ import com.github.flinkalt._
 import com.github.flinkalt.time.Instant
 
 case class MemoryStream[+T](elems: Vector[DataOrWatermark[T]]) {
-  def toData: Vector[DataAndWatermark[T]] = {
+  def toPostData: Vector[DataAndWatermark[T]] = {
     val convertToData: DataOrWatermark[T] => State[Instant, Vector[DataAndWatermark[T]]] = {
       case JustData(time, value) => State(watermark => (watermark, Vector(DataAndWatermark(time, watermark, value))))
       case JustWatermark(watermark) => State(_ => (watermark, Vector.empty))
     }
 
     elems.flatTraverse(convertToData).runA(Instant.minValue).value
+  }
+
+  def toPreData: Vector[DataAndWatermark[T]] = {
+    val convertToData: DataOrWatermark[T] => State[Vector[JustData[T]], Vector[DataAndWatermark[T]]] = {
+      case jd@JustData(_, _) => State(elems => (elems :+ jd, Vector.empty))
+      case JustWatermark(watermark) => State(elems => (Vector.empty, elems.map(elem => DataAndWatermark(elem.time, watermark, elem.value))))
+    }
+
+    elems.flatTraverse(convertToData).runA(Vector.empty).value
   }
 }
 
