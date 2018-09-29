@@ -46,7 +46,7 @@ class TotalSlidingSumsTest extends FunSuite {
       DataAndWatermark(time = justBefore(18 seconds), watermark = at(6 seconds), value = List(8, 9))
     ),
     program = new DStreamFun[Int, List[Int]] {
-      override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[List[Int]] = {
+      override def apply[DS[_] : DStream : Windowed : Stateful : Processing]: DS[Int] => DS[List[Int]] = {
         totalSlidingSums(WindowTypes.Sliding(10 seconds, 2 seconds))
       }
     }

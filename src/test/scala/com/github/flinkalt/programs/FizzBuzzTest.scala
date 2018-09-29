@@ -1,7 +1,7 @@
 package com.github.flinkalt.programs
 
 import cats.instances.string._
-import com.github.flinkalt.api.{DStream, Stateful, WindowTypes, Windowed}
+import com.github.flinkalt.api._
 import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.programs.FizzBuzzProgram.fizzBuzzTestCase
 import com.github.flinkalt.programs.utils.TestUtils._
@@ -55,7 +55,7 @@ object FizzBuzzProgram {
       DataAndWatermark(time = justBefore(21 seconds), watermark = at(20 seconds), "Buzz")
     ),
     program = new DStreamFun[Int, String] {
-      override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[String] = fizzBuzzProgram
+      override def apply[DS[_] : DStream : Windowed : Stateful : Processing]: DS[Int] => DS[String] = fizzBuzzProgram
     },
     deterministic = true
   )

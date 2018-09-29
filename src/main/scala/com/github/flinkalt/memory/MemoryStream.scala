@@ -3,7 +3,7 @@ package com.github.flinkalt.memory
 import cats.data.State
 import cats.instances.vector._
 import cats.syntax.traverse._
-import com.github.flinkalt.api.{DStream, Stateful, Windowed}
+import com.github.flinkalt.api.{DStream, Processing, Stateful, Windowed}
 import com.github.flinkalt.time.Instant
 
 case class MemoryStream[+T](elems: Vector[DataOrWatermark[T]]) {
@@ -24,12 +24,19 @@ case class MemoryStream[+T](elems: Vector[DataOrWatermark[T]]) {
 
     elems.flatTraverse(convertToData).runA(Vector.empty).value
   }
+
+  def collectValues: Vector[T] = {
+    elems.collect {
+      case JustData(_, t) => t
+    }
+  }
 }
 
 object MemoryStream {
   implicit def memoryDStream: DStream[MemoryStream] = MemoryDStream
   implicit def memoryStateful: Stateful[MemoryStream] = MemoryStateful
   implicit def memoryWindowed: Windowed[MemoryStream] = MemoryWindowed
+  implicit def memoryProcessing: Processing[MemoryStream] = MemoryProcessing
 
   def empty[T]: MemoryStream[T] = MemoryStream(Vector.empty)
 

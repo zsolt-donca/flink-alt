@@ -1,5 +1,7 @@
 package com.github.flinkalt.typeinfo
 
+import java.io.{DataInput, DataOutput}
+
 import com.github.flinkalt.typeinfo.serializer._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
@@ -48,4 +50,16 @@ abstract class SerializerBasedTypeInfo[T](implicit val tag: ClassTag[T]) extends
 
 object TypeInfo {
   @inline def apply[T](implicit typeInfo: TypeInfo[T]): TypeInfo[T] = typeInfo
+
+  def dummy[T]: TypeInfo[T] = new TypeInfo[T] {
+
+    private def dummy: Nothing = sys.error("This is a dummy implementation. Use it only where you require a TypeInfo but are absolutely sure that it's not required (e.g. with MemoryStream)")
+
+    override def tag: ClassTag[T] = dummy
+    override def flinkTypeInfo: TypeInformation[T] = dummy
+    override def serialize(value: T, dataOutput: DataOutput, state: SerializationState): Unit = dummy
+    override def deserialize(dataInput: DataInput, state: DeserializationState): T = dummy
+    override def serializeNewValue(value: T, dataOutput: DataOutput, state: SerializationState): Unit = dummy
+    override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): T = dummy
+  }
 }

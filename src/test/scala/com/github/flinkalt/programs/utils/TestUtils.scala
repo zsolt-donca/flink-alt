@@ -3,7 +3,7 @@ package com.github.flinkalt.programs.utils
 import cats.Order
 import cats.instances.long._
 import cats.instances.string._
-import com.github.flinkalt.api.{DStream, Stateful, Windowed}
+import com.github.flinkalt.api.{DStream, Processing, Stateful, Windowed}
 import com.github.flinkalt.flink._
 import com.github.flinkalt.flink.helper.{DataStreamCollector, _}
 import com.github.flinkalt.memory.{DataAndWatermark, MemoryStream}
@@ -20,7 +20,7 @@ import org.scalatest.Assertions
 // also, it turns out there can be many ways a function can be "polymorphic"
 // this is neither what shapeless nor what cats calls polymorphic functions
 trait DStreamFun[A, B] {
-  def apply[DS[_] : DStream : Windowed : Stateful]: DS[A] => DS[B]
+  def apply[DS[_] : DStream : Windowed : Stateful : Processing]: DS[A] => DS[B]
 }
 
 case class TestCase[A, B]
@@ -42,6 +42,22 @@ object TestUtils extends Assertions {
 
   def justBefore(duration: Duration): Instant = at(duration) - (1 milli)
 
+  def increasing[A](values: A*): Vector[DataAndWatermark[A]] = {
+    values.zipWithIndex.map({
+      case (value, i) =>
+        val time = at(i seconds)
+        DataAndWatermark(time, time, value)
+    }).toVector
+  }
+
+  def increasingWithWatermarkLaggingBehind[A](values: A*): Vector[DataAndWatermark[A]] = {
+    values.zipWithIndex.map({
+      case (value, i) =>
+        val time = at(i seconds)
+        val wm = if (i == 0) Instant.minValue else at((i - 1) seconds)
+        DataAndWatermark(time, wm, value)
+    }).toVector
+  }
 
   def runTestCaseWithMemory[A: TypeInfo, B: TypeInfo](testCase: TestCase[A, B]): Unit = {
     val stream = MemoryStream.fromData(testCase.input)

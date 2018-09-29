@@ -27,7 +27,7 @@ object MemoryStateful extends Stateful[MemoryStream] {
 
   private def stateByKey[K, S, A](key: K, st: State[Option[S], A]): State[Map[K, S], A] = {
     val read: Map[K, S] => Option[S] = map => map.get(key)
-    val write: (Map[K, S], Option[S]) => Map[K, S] = (map, os) => os.map(s => map.updated(key, s)).getOrElse(map)
+    val write: (Map[K, S], Option[S]) => Map[K, S] = (map, os) => os.map(s => map.updated(key, s)).getOrElse(map - key)
     st.transformS(read, write)
   }
 }

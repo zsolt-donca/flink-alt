@@ -1,6 +1,6 @@
 package com.github.flinkalt.programs
 
-import com.github.flinkalt.api.{DStream, Stateful, Windowed}
+import com.github.flinkalt.api.{DStream, Processing, Stateful, Windowed}
 import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.programs.utils.TestUtils.{at, runTestCaseWithFlink, runTestCaseWithMemory, syncedData}
 import com.github.flinkalt.programs.utils.{DStreamFun, TestCase}
@@ -41,7 +41,7 @@ class NumberJugglingTest extends FunSuite {
       DataAndWatermark(time = at(3 seconds), watermark = at(2 seconds), "odd: 5")
     ),
     program = new DStreamFun[Int, String] {
-      override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[String] = numberJuggling
+      override def apply[DS[_] : DStream : Windowed : Stateful : Processing]: DS[Int] => DS[String] = numberJuggling
     }
   )
 

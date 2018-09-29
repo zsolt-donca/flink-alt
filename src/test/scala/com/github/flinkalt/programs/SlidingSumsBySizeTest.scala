@@ -52,7 +52,7 @@ class SlidingSumsBySizeTest extends FunSuite {
       DataAndWatermark(time = justBefore(20 seconds), watermark = at(12 seconds), (Small, Window(start = at(10 seconds), end = at(20 seconds)), 7))
     ),
     program = new DStreamFun[Int, (Size, Window, Int)] {
-      override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[(Size, Window, Int)] = {
+      override def apply[DS[_] : DStream : Windowed : Stateful : Processing]: DS[Int] => DS[(Size, Window, Int)] = {
         slidingSumsBySize(WindowTypes.Sliding(10 second, 5 seconds))
       }
     }

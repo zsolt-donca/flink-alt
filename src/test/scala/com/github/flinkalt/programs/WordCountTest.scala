@@ -58,7 +58,7 @@ class WordCount extends FunSuite with Serializable {
       DataAndWatermark(time = at(5 seconds), watermark = at(2 seconds), Count("y", 3))
     ),
     program = new DStreamFun[String, Count[String]] {
-      override def apply[DS[_] : DStream : Windowed : Stateful]: DS[String] => DS[Count[String]] = WordCountProgram.totalWordCount
+      override def apply[DS[_] : DStream : Windowed : Stateful : Processing]: DS[String] => DS[Count[String]] = WordCountProgram.totalWordCount
     }
   )
 

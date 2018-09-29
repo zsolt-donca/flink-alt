@@ -59,7 +59,7 @@ class SlidingWordCountTest extends FunSuite {
       DataAndWatermark(time = justBefore(10 seconds), watermark = at(6 seconds), Count("z", 1))
     ),
     program = new DStreamFun[String, Count[String]] {
-      override def apply[DS[_] : DStream : Windowed : Stateful]: DS[String] => DS[Count[String]] = {
+      override def apply[DS[_] : DStream : Windowed : Stateful : Processing]: DS[String] => DS[Count[String]] = {
         SlidingWordCountProgram.slidingWordCount(WindowTypes.Sliding(4 seconds, 2 seconds))
       }
     }
