@@ -16,9 +16,6 @@ import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironm
 import org.apache.flink.streaming.api.watermark.Watermark
 import org.scalatest.Assertions
 
-// necessary boilerplate, Scala does not have built-in the concept of polymorphic functions
-// also, it turns out there can be many ways a function can be "polymorphic"
-// this is neither what shapeless nor what cats calls polymorphic functions
 trait DStreamFun[A, B] {
   def apply[DS[_] : DStream : Windowed : Stateful : Processing]: DS[A] => DS[B]
 }
@@ -28,6 +25,19 @@ case class TestCase[A, B]
   input: Vector[DataAndWatermark[A]],
   output: Vector[DataAndWatermark[B]],
   program: DStreamFun[A, B],
+  deterministic: Boolean = false
+)
+
+trait DStreamFun2[A, B1, B2] {
+  def apply[DS[_] : DStream : Windowed : Stateful : Processing]: DS[A] => (DS[B1], DS[B2])
+}
+
+case class TestCase2[A, B1, B2]
+(
+  input: Vector[DataAndWatermark[A]],
+  output1: Vector[DataAndWatermark[B1]],
+  output2: Vector[DataAndWatermark[B2]],
+  program: DStreamFun2[A, B1, B2],
   deterministic: Boolean = false
 )
 
@@ -76,9 +86,7 @@ object TestUtils extends Assertions {
     env.setStreamTimeCharacteristic(EventTime)
     implicit val dsCollector: DataStreamCollector = new DataStreamCollector
 
-    val vector = testCase.input
-
-    val stream = createFlinkSource(env, vector)
+    val stream = createFlinkSource(env, testCase.input)
     val outStream = testCase.program[DataStream].apply(stream)
     val collector = outStream.collect()
 
@@ -90,6 +98,45 @@ object TestUtils extends Assertions {
       assert(actual == testCase.output)
     } else {
       assert(actual.sorted == testCase.output.sorted)
+    }
+  }
+
+  def runTestCaseWithMemory2[A: TypeInfo, B1: TypeInfo, B2: TypeInfo](testCase: TestCase2[A, B1, B2]): Unit = {
+    val stream = MemoryStream.fromData(testCase.input)
+    val (outStream1, outStream2) = testCase.program[MemoryStream].apply(stream)
+    val actual1 = outStream1.toPostData
+    val actual2 = outStream2.toPostData
+
+    if (testCase.deterministic) {
+      assert(actual1 == testCase.output1)
+      assert(actual2 == testCase.output2)
+    } else {
+      assert(actual1.sorted == testCase.output1.sorted)
+      assert(actual2.sorted == testCase.output2.sorted)
+    }
+  }
+
+  def runTestCaseWithFlink2[A: TypeInfo, B1: TypeInfo, B2: TypeInfo](testCase: TestCase2[A, B1, B2]): Unit = {
+    val env = StreamExecutionEnvironment.createLocalEnvironment(parallelism = 1)
+    env.setStreamTimeCharacteristic(EventTime)
+    implicit val dsCollector: DataStreamCollector = new DataStreamCollector
+
+    val stream = createFlinkSource(env, testCase.input)
+    val (outStream1, outStream2) = testCase.program[DataStream].apply(stream)
+    val collector1 = outStream1.collect()
+    val collector2 = outStream2.collect()
+
+    env.execute()
+
+    val actual1 = collector1.toVector
+    val actual2 = collector2.toVector
+
+    if (testCase.deterministic) {
+      assert(actual1 == testCase.output1)
+      assert(actual2 == testCase.output2)
+    } else {
+      assert(actual1.sorted == testCase.output1.sorted)
+      assert(actual2.sorted == testCase.output2.sorted)
     }
   }
 
