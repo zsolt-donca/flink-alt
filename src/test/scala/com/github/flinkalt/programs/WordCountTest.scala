@@ -1,13 +1,12 @@
 package com.github.flinkalt.programs
 
 import cats.data.State
-import com.github.flinkalt.Stateful.StateTrans
+import com.github.flinkalt.api._
 import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.programs.utils.TestUtils.{at, runTestCaseWithFlink, runTestCaseWithMemory, syncedData}
 import com.github.flinkalt.programs.utils.{DStreamFun, TestCase}
 import com.github.flinkalt.time.{Instant, _}
 import com.github.flinkalt.typeinfo.auto._
-import com.github.flinkalt.{DStream, Keyed, Stateful, Windowed}
 import org.scalatest.FunSuite
 
 case class Count[T](value: T, count: Int)

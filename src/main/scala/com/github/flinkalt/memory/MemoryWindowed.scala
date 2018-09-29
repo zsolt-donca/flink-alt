@@ -6,8 +6,7 @@ import cats.instances.vector._
 import cats.kernel.Semigroup
 import cats.syntax.semigroup._
 import cats.syntax.traverse._
-import com.github.flinkalt.Windowed.WindowMapper
-import com.github.flinkalt._
+import com.github.flinkalt.api._
 import com.github.flinkalt.time._
 import com.github.flinkalt.typeinfo.TypeInfo
 import org.apache.flink.api.scala.ClosureCleaner
@@ -47,8 +46,8 @@ object MemoryWindowed extends Windowed[MemoryStream] {
 
   private def calculateWindows(time: Instant, windowType: WindowType): Vector[Window] = {
     val (size, slide) = windowType match {
-      case SlidingWindow(winSize, winSlide) => (winSize, winSlide)
-      case TumblingWindow(winSize) => (winSize, winSize)
+      case WindowTypes.Sliding(winSize, winSlide) => (winSize, winSlide)
+      case WindowTypes.Tumbling(winSize) => (winSize, winSize)
     }
     val ratio = size.millis / slide.millis
     val sliceEnd = ceil(time, slide)

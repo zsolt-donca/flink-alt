@@ -1,7 +1,7 @@
 package com.github.flinkalt.programs
 
 import cats.kernel.Semigroup
-import com.github.flinkalt._
+import com.github.flinkalt.api._
 import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.programs.utils.TestUtils._
 import com.github.flinkalt.programs.utils._
@@ -11,8 +11,8 @@ import org.scalatest.FunSuite
 
 object SlidingWordCountProgram {
 
-  import DStream.ops._
-  import Windowed.ops._
+  import com.github.flinkalt.api.DStream.ops._
+  import com.github.flinkalt.api.Windowed.ops._
 
   def slidingWordCount[DS[_] : DStream : Windowed](windowType: WindowType)(lines: DS[String]): DS[Count[String]] = {
     lines
@@ -60,7 +60,7 @@ class SlidingWordCountTest extends FunSuite {
     ),
     program = new DStreamFun[String, Count[String]] {
       override def apply[DS[_] : DStream : Windowed : Stateful]: DS[String] => DS[Count[String]] = {
-        SlidingWordCountProgram.slidingWordCount(SlidingWindow(4 seconds, 2 seconds))
+        SlidingWordCountProgram.slidingWordCount(WindowTypes.Sliding(4 seconds, 2 seconds))
       }
     }
   )

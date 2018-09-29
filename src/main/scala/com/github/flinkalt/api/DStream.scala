@@ -1,4 +1,4 @@
-package com.github.flinkalt
+package com.github.flinkalt.api
 
 import com.github.flinkalt.typeinfo.TypeInfo
 import simulacrum.typeclass
@@ -12,3 +12,4 @@ trait DStream[F[_]] {
 
   def union[A](f: F[A])(g: F[A]): F[A]
 }
+

@@ -3,13 +3,13 @@ package com.github.flinkalt.programs.utils
 import cats.Order
 import cats.instances.long._
 import cats.instances.string._
+import com.github.flinkalt.api.{DStream, Stateful, Windowed}
 import com.github.flinkalt.flink._
 import com.github.flinkalt.flink.helper.{DataStreamCollector, _}
 import com.github.flinkalt.memory.{DataAndWatermark, MemoryStream}
 import com.github.flinkalt.time._
 import com.github.flinkalt.typeinfo.TypeInfo
 import com.github.flinkalt.typeinfo.auto._
-import com.github.flinkalt.{DStream, Stateful, Windowed}
 import org.apache.flink.streaming.api.TimeCharacteristic.EventTime
 import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}

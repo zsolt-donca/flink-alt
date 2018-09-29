@@ -1,8 +1,7 @@
 package com.github.flinkalt.flink
 
 import cats.kernel.Semigroup
-import com.github.flinkalt.Windowed.WindowMapper
-import com.github.flinkalt._
+import com.github.flinkalt.api._
 import com.github.flinkalt.time.Instant
 import com.github.flinkalt.typeinfo.TypeInfo
 import com.github.flinkalt.typeinfo.auto._
@@ -44,8 +43,8 @@ object FlinkWindowed extends Windowed[DataStream] {
 
   private def timeWindowAssigner[B, A: Semigroup, K](windowType: WindowType): TimeWindowAssigner = {
     windowType match {
-      case SlidingWindow(size, slide) => SlidingEventTimeWindows.of(Time.milliseconds(size.millis), Time.milliseconds(slide.millis)).asInstanceOf[TimeWindowAssigner]
-      case TumblingWindow(size) => TumblingEventTimeWindows.of(Time.milliseconds(size.millis)).asInstanceOf[TimeWindowAssigner]
+      case WindowTypes.Sliding(size, slide) => SlidingEventTimeWindows.of(Time.milliseconds(size.millis), Time.milliseconds(slide.millis)).asInstanceOf[TimeWindowAssigner]
+      case WindowTypes.Tumbling(size) => TumblingEventTimeWindows.of(Time.milliseconds(size.millis)).asInstanceOf[TimeWindowAssigner]
     }
   }
 }

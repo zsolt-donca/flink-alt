@@ -1,13 +1,13 @@
 package com.github.flinkalt.programs
 
 import cats.instances.string._
+import com.github.flinkalt.api.{DStream, Stateful, WindowTypes, Windowed}
 import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.programs.FizzBuzzProgram.fizzBuzzTestCase
 import com.github.flinkalt.programs.utils.TestUtils._
 import com.github.flinkalt.programs.utils.{DStreamFun, TestCase}
 import com.github.flinkalt.time._
 import com.github.flinkalt.typeinfo.auto._
-import com.github.flinkalt.{DStream, Stateful, TumblingWindow, Windowed}
 import org.scalatest.FunSuite
 
 object FizzBuzzProgram {
@@ -25,7 +25,7 @@ object FizzBuzzProgram {
 
     // sorts values by time
     // works because values will be mapped exactly to one window (and each window will have exactly one value)
-    unioned.windowReduce(TumblingWindow(1 second), _ => ())
+    unioned.windowReduce(WindowTypes.Tumbling(1 second), _ => ())
   }
 
   val fizzBuzzTestCase = TestCase(

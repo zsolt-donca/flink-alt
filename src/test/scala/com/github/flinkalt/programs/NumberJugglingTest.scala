@@ -1,11 +1,11 @@
 package com.github.flinkalt.programs
 
+import com.github.flinkalt.api.{DStream, Stateful, Windowed}
 import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.programs.utils.TestUtils.{at, runTestCaseWithFlink, runTestCaseWithMemory, syncedData}
 import com.github.flinkalt.programs.utils.{DStreamFun, TestCase}
 import com.github.flinkalt.time.{Instant, _}
 import com.github.flinkalt.typeinfo.auto._
-import com.github.flinkalt.{DStream, Stateful, Windowed}
 import org.scalatest.FunSuite
 
 class NumberJugglingTest extends FunSuite {

@@ -1,5 +1,6 @@
 package com.github.flinkalt
 
+import com.github.flinkalt.api.{DStream, Stateful, Windowed}
 import org.apache.flink.streaming.api.scala.DataStream
 
 package object flink {

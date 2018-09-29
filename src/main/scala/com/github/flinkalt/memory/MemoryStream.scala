@@ -3,7 +3,7 @@ package com.github.flinkalt.memory
 import cats.data.State
 import cats.instances.vector._
 import cats.syntax.traverse._
-import com.github.flinkalt._
+import com.github.flinkalt.api.{DStream, Stateful, Windowed}
 import com.github.flinkalt.time.Instant
 
 case class MemoryStream[+T](elems: Vector[DataOrWatermark[T]]) {

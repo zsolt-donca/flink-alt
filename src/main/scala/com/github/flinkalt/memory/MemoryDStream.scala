@@ -2,7 +2,7 @@ package com.github.flinkalt.memory
 
 import cats.Order
 import cats.syntax.functor._
-import com.github.flinkalt.DStream
+import com.github.flinkalt.api.DStream
 import com.github.flinkalt.time.Instant
 import com.github.flinkalt.typeinfo.TypeInfo
 import org.apache.flink.api.scala.ClosureCleaner

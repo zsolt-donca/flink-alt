@@ -1,7 +1,7 @@
 package com.github.flinkalt.programs
 
 import cats.instances.list._
-import com.github.flinkalt._
+import com.github.flinkalt.api._
 import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.programs.utils.TestUtils.{at, justBefore, runTestCaseWithFlink, runTestCaseWithMemory}
 import com.github.flinkalt.programs.utils.{DStreamFun, TestCase}
@@ -47,7 +47,7 @@ class TotalSlidingSumsTest extends FunSuite {
     ),
     program = new DStreamFun[Int, List[Int]] {
       override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[List[Int]] = {
-        totalSlidingSums(SlidingWindow(10 seconds, 2 seconds))
+        totalSlidingSums(WindowTypes.Sliding(10 seconds, 2 seconds))
       }
     }
   )

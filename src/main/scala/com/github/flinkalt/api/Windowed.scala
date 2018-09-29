@@ -1,7 +1,6 @@
-package com.github.flinkalt
+package com.github.flinkalt.api
 
 import cats.kernel.Semigroup
-import com.github.flinkalt.Windowed.WindowMapper
 import com.github.flinkalt.time.{Duration, Instant}
 import com.github.flinkalt.typeinfo.TypeInfo
 import simulacrum.typeclass
@@ -13,12 +12,11 @@ trait Windowed[F[_]] {
   def windowReduceMapped[K: TypeInfo, A: Semigroup, B: TypeInfo](fa: F[A])(windowType: WindowType, key: A => K)(trigger: WindowMapper[K, A, B]): F[B]
 }
 
-object Windowed {
-  type WindowMapper[K, A, B] = (K, Window, A) => B
-}
-
 case class Window(start: Instant, end: Instant)
 
 sealed trait WindowType
-case class TumblingWindow(size: Duration) extends WindowType
-case class SlidingWindow(size: Duration, slide: Duration) extends WindowType
+
+object WindowTypes {
+  case class Tumbling(size: Duration) extends WindowType
+  case class Sliding(size: Duration, slide: Duration) extends WindowType
+}

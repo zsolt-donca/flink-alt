@@ -3,9 +3,8 @@ package com.github.flinkalt.memory
 import cats.data.State
 import cats.instances.vector._
 import cats.syntax.traverse._
-import com.github.flinkalt.Stateful.StateTrans
+import com.github.flinkalt.api.{Keyed, StateTrans, Stateful}
 import com.github.flinkalt.typeinfo.TypeInfo
-import com.github.flinkalt.{Keyed, Stateful}
 import org.apache.flink.api.scala.ClosureCleaner
 
 object MemoryStateful extends Stateful[MemoryStream] {

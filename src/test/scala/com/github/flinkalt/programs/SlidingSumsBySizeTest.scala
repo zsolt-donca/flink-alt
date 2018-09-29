@@ -1,12 +1,12 @@
 package com.github.flinkalt.programs
 
 import cats.instances.int._
+import com.github.flinkalt.api.{DStream, Stateful, Windowed, _}
 import com.github.flinkalt.memory.DataAndWatermark
 import com.github.flinkalt.programs.utils.TestUtils._
 import com.github.flinkalt.programs.utils.{DStreamFun, TestCase}
 import com.github.flinkalt.time._
 import com.github.flinkalt.typeinfo.auto._
-import com.github.flinkalt.{DStream, Stateful, Windowed, _}
 import org.scalatest.FunSuite
 
 sealed trait Size
@@ -53,7 +53,7 @@ class SlidingSumsBySizeTest extends FunSuite {
     ),
     program = new DStreamFun[Int, (Size, Window, Int)] {
       override def apply[DS[_] : DStream : Windowed : Stateful]: DS[Int] => DS[(Size, Window, Int)] = {
-        slidingSumsBySize(SlidingWindow(10 second, 5 seconds))
+        slidingSumsBySize(WindowTypes.Sliding(10 second, 5 seconds))
       }
     }
   )
