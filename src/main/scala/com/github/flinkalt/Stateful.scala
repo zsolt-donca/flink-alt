@@ -6,8 +6,10 @@ import simulacrum.typeclass
 
 @typeclass
 trait Stateful[F[_]] {
-  def mapWithState[K: TypeInfo, S: TypeInfo, A, B: TypeInfo](f: F[A])(stateTrans: StateTrans[K, S, A, B]): F[B]
-  def flatMapWithState[K: TypeInfo, S: TypeInfo, A, B: TypeInfo](f: F[A])(stateTrans: StateTrans[K, S, A, Vector[B]]): F[B]
+  def mapWithState[S: TypeInfo, A, B: TypeInfo](fa: F[A])(f: Stateful.StateTrans[S, A, B])(implicit keyed: Keyed[A]): F[B]
+  def flatMapWithState[S: TypeInfo, A, B: TypeInfo](fa: F[A])(f: Stateful.StateTrans[S, A, Vector[B]])(implicit keyed: Keyed[A]): F[B]
 }
 
-case class StateTrans[K, S, A, B](key: A => K, trans: A => State[Option[S], B])
+object Stateful {
+  type StateTrans[S, A, B] = A => State[Option[S], B]
+}

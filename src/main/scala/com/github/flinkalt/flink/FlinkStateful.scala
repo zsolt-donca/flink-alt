@@ -1,20 +1,23 @@
 package com.github.flinkalt.flink
 
+import com.github.flinkalt.Stateful.StateTrans
 import com.github.flinkalt.typeinfo.TypeInfo
 import com.github.flinkalt.typeinfo.auto._
-import com.github.flinkalt.{StateTrans, Stateful}
+import com.github.flinkalt.{Keyed, Stateful}
 import org.apache.flink.streaming.api.scala.DataStream
 
 object FlinkStateful extends Stateful[DataStream] {
-  override def mapWithState[K: TypeInfo, S: TypeInfo, A, B: TypeInfo](dataStream: DataStream[A])(stateTrans: StateTrans[K, S, A, B]): DataStream[B] = {
+  override def mapWithState[S: TypeInfo, A, B: TypeInfo](dataStream: DataStream[A])(stateTrans: StateTrans[S, A, B])(implicit keyed: Keyed[A]): DataStream[B] = {
+    import keyed.typeInfo
     dataStream
-      .keyBy(stateTrans.key)
-      .mapWithState[B, S]((a, maybeState) => stateTrans.trans(a).run(maybeState).value.swap)
+      .keyBy(keyed.fun)
+      .mapWithState[B, S]((a, maybeState) => stateTrans(a).run(maybeState).value.swap)
   }
 
-  override def flatMapWithState[K: TypeInfo, S: TypeInfo, A, B: TypeInfo](dataStream: DataStream[A])(stateTrans: StateTrans[K, S, A, Vector[B]]): DataStream[B] = {
+  override def flatMapWithState[S: TypeInfo, A, B: TypeInfo](dataStream: DataStream[A])(stateTrans: StateTrans[S, A, Vector[B]])(implicit keyed: Keyed[A]): DataStream[B] = {
+    import keyed.typeInfo
     dataStream
-      .keyBy(stateTrans.key)
-      .flatMapWithState[B, S]((a, maybeState) => stateTrans.trans(a).run(maybeState).value.swap)
+      .keyBy(keyed.fun)
+      .flatMapWithState[B, S]((a, maybeState) => stateTrans(a).run(maybeState).value.swap)
   }
 }
