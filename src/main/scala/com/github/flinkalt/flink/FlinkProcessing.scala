@@ -14,7 +14,7 @@ import scala.annotation.tailrec
 
 //noinspection ConvertExpressionToSAM,ScalaRedundantCast
 object FlinkProcessing extends Processing[DataStream] {
-  override def process1[S <: HList, A, B: TypeInfo](dataStream: DataStream[A])(f: StateTrans[S, A, B])(implicit keyed: Keyed[A], si: StateInfo[S]): DataStream[B] = {
+  override def process1[S <: HList, A, B: TypeInfo](dataStream: DataStream[A])(f: StateTrans[S, A, Vector[B]])(implicit keyed: Keyed[A], si: StateInfo[S]): DataStream[B] = {
     import keyed.typeInfo
     dataStream
       .keyBy(keyed.fun)
@@ -22,12 +22,12 @@ object FlinkProcessing extends Processing[DataStream] {
         override def processElement(value: A, ctx: ProcessFunction[A, B]#Context, out: Collector[B]): Unit = {
           val result = runWithState(value, f)
 
-          out.collect(result)
+          result.foreach(out.collect)
         }
       })
   }
 
-  override def process2[S <: HList, A, B1: TypeInfo, B2: TypeInfo](dataStream: DataStream[A])(f: StateTrans[S, A, (B1, B2)])(implicit keyed: Keyed[A], si: StateInfo[S]): (DataStream[B1], DataStream[B2]) = {
+  override def process2[S <: HList, A, B1: TypeInfo, B2: TypeInfo](dataStream: DataStream[A])(f: StateTrans[S, A, (Vector[B1], Vector[B2])])(implicit keyed: Keyed[A], si: StateInfo[S]): (DataStream[B1], DataStream[B2]) = {
     import keyed.typeInfo
 
     val b2OutTag = OutputTag[B2]("out-2")
@@ -38,8 +38,8 @@ object FlinkProcessing extends Processing[DataStream] {
         override def processElement(value: A, ctx: ProcessFunction[A, B1]#Context, out: Collector[B1]): Unit = {
           val (b1, b2) = runWithState(value, f)
 
-          out.collect(b1)
-          ctx.output(b2OutTag, b2)
+          b1.foreach(out.collect)
+          b2.foreach(ctx.output(b2OutTag, _))
         }
       })
 

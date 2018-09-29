@@ -6,12 +6,8 @@ import simulacrum.typeclass
 
 @typeclass
 trait Processing[F[_]] {
-
-  // - state, even multiple
-  // - multiple outputs - expanded...
-
-  def process1[S <: HList, A, B: TypeInfo](fa: F[A])(f: StateTrans[S, A, B])(implicit keyed: Keyed[A], si: StateInfo[S]): F[B]
-  def process2[S <: HList, A, B1: TypeInfo, B2: TypeInfo](fa: F[A])(f: StateTrans[S, A, (B1, B2)])(implicit keyed: Keyed[A], si: StateInfo[S]): (F[B1], F[B2])
+  def process1[S <: HList, A, B: TypeInfo](fa: F[A])(f: StateTrans[S, A, Vector[B]])(implicit keyed: Keyed[A], si: StateInfo[S]): F[B]
+  def process2[S <: HList, A, B1: TypeInfo, B2: TypeInfo](fa: F[A])(f: StateTrans[S, A, (Vector[B1], Vector[B2])])(implicit keyed: Keyed[A], si: StateInfo[S]): (F[B1], F[B2])
 }
 
 sealed trait StateInfo[T]

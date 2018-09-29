@@ -19,13 +19,13 @@ class RememberByParityTest extends FunSuite {
 
     implicit def parityKey = Keyed.create[Int, Boolean](i => i % 2 == 0)
 
-    s1.process1(i => State[Option[MyState], String](s0 => {
+    s1.process1(i => State[Option[MyState], Vector[String]](s0 => {
       val sum :: list :: HNil = s0.getOrElse(0 :: List() :: HNil)
 
       if (i < 0) {
-        (None, s"Sum: $sum, list: $list")
+        (None, Vector(s"Sum: $sum, list: $list"))
       } else {
-        (Some(sum + i :: (list :+ i) :: HNil), "Got it.")
+        (Some(sum + i :: (list :+ i) :: HNil), Vector("Got it."))
       }
     }))
 
@@ -59,13 +59,13 @@ class RememberByParityTest extends FunSuite {
 
     implicit def parityKey = Keyed.create[Int, Boolean](i => i % 2 == 0)
 
-    s1.process2(i => State[Option[MyState], (String, Int)](s0 => {
+    s1.process2(i => State[Option[MyState], (Vector[String], Vector[Int])](s0 => {
       val sum :: list :: HNil = s0.getOrElse(0 :: List() :: HNil)
 
       if (i < 0) {
-        (None, (s"Sum: $sum, list: $list", 0))
+        (None, (Vector(s"Sum: $sum, list: $list"), Vector(0)))
       } else {
-        (Some(sum + i :: (list :+ i) :: HNil), ("Got it.", i * 2))
+        (Some(sum + i :: (list :+ i) :: HNil), (Vector("Got it."), Vector(i * 2)))
       }
     }))
   }
