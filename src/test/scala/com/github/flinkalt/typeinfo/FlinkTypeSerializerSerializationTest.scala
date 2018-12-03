@@ -21,6 +21,20 @@ class FlinkTypeSerializerSerializationTest extends FunSuite {
     assertRoundTripOfSerializerAndConfig(typeInfo)
   }
 
+  test("Unit type serializers can serialize data") {
+    val typeInfo = implicitly[TypeInformation[Unit]]
+
+    val data: Unit = ()
+
+    val bos = new ByteArrayOutputStream()
+    val out = new DataOutputViewStreamWrapper(bos)
+    val serializer = typeInfo.createSerializer(null)
+    serializer.serialize(data, out)
+
+    val in = new DataInputViewStreamWrapper(new ByteArrayInputStream(bos.toByteArray))
+    serializer.deserialize(in)
+  }
+
   private def assertRoundTripOfSerializerAndConfig(typeInfo: TypeInformation[_]): Unit = {
     val serializer = typeInfo.createSerializer(null)
     val config = serializer.snapshotConfiguration()

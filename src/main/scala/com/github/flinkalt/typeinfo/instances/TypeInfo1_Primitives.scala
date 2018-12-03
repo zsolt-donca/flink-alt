@@ -2,7 +2,7 @@ package com.github.flinkalt.typeinfo.instances
 
 import java.io.{DataInput, DataOutput}
 
-import com.github.flinkalt.typeinfo.serializer.{DeserializationState, SerializationState, ValueSerializer}
+import com.github.flinkalt.typeinfo.serializer.{DeserializationState, SerializationState, UnitTypeInfo, ValueSerializer}
 import com.github.flinkalt.typeinfo.{DirectTypeInfo, TypeInfo}
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo.getInfoFor
 
@@ -55,7 +55,7 @@ trait TypeInfo1_Primitives extends TypeInfo2_Common {
     override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): Double = dataInput.readDouble()
   }
 
-  implicit def unitTypeInfo: TypeInfo[Unit] = new DirectTypeInfo(getInfoFor(classOf[Unit])) with ValueSerializer[Unit] {
+  implicit def unitTypeInfo: TypeInfo[Unit] = new DirectTypeInfo(new UnitTypeInfo) with ValueSerializer[Unit] {
     override def serializeNewValue(value: Unit, dataOutput: DataOutput, state: SerializationState): Unit = {}
 
     override def deserializeNewValue(dataInput: DataInput, state: DeserializationState): Unit = ()
