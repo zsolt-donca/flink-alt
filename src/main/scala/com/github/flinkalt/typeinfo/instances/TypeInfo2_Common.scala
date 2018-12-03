@@ -10,9 +10,48 @@ import org.apache.flink.api.common.typeinfo.BasicTypeInfo
 
 trait TypeInfo2_Common extends TypeInfo3_Arrays {
   implicit def stringTypeInfo: TypeInfo[String] = new DirectTypeInfo(BasicTypeInfo.STRING_TYPE_INFO) with LeafRefSerializer[String] {
-    override def write(dataOutput: DataOutput, value: String): Unit = dataOutput.writeUTF(value)
+    override def write(dataOutput: DataOutput, value: String): Unit = {
+      val large = isStringLarge(value)
+      dataOutput.writeBoolean(large)
 
-    override def read(dataInput: DataInput): String = dataInput.readUTF()
+      if (!large) {
+        dataOutput.writeUTF(value)
+      } else {
+        val bytes = value.getBytes("utf-8")
+        dataOutput.writeInt(bytes.length)
+        dataOutput.write(bytes)
+      }
+    }
+
+    override def read(dataInput: DataInput): String = {
+      val large = dataInput.readBoolean()
+      if (!large) {
+        dataInput.readUTF()
+      } else {
+        val length = dataInput.readInt()
+        val bytes = new Array[Byte](length)
+        dataInput.readFully(bytes)
+        new String(bytes, "utf-8")
+      }
+    }
+
+    // same check as in org.apache.flink.core.memory.DataOutputSerializer.writeUTF
+    private def isStringLarge(str: String): Boolean = {
+      val strLength = str.length
+      var utfLength = 0
+
+      var i = 0
+      while (i < strLength) {
+        val c: Int = str.charAt(i)
+        if ((c >= 0x0001) && (c <= 0x007F)) utfLength += 1
+        else if (c > 0x07FF) utfLength += 3
+        else utfLength += 2
+
+        i += 1
+      }
+
+      utfLength > 65535
+    }
   }
 
   implicit def optionTypeInfo[T: TypeInfo]: TypeInfo[Option[T]] = new SerializerBasedTypeInfo[Option[T]] with RefSerializer[Option[T]] {

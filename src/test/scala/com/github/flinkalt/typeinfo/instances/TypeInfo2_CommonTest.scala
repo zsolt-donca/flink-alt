@@ -29,4 +29,15 @@ class TypeInfo2_CommonTest extends PropSpec with RefSerializerHelper {
 
     forAllRoundTrip[Validated[NonEmptyList[String], Long]]()
   }
+
+  // inspired by https://www.drillio.com/en/2009/java-encoded-string-too-long-64kb-limit/
+  property("Can serialize strings larger than 64 kb") {
+    val sb = new StringBuilder
+    for (i <- 0 to 10000) {
+      sb.append("1234567890")
+    }
+    val largeString = sb.toString
+
+    roundTrip(largeString)
+  }
 }
