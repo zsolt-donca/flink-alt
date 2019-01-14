@@ -21,19 +21,22 @@ trait RefSerializer[T] extends Serializer[T] {
     var id: Int = 0
     var isNew: Boolean = false
 
-    var valueMap = state.objects.get(this)
-    if (valueMap != null) {
-      id = valueMap.get(value)
+    if (value == null) {
+      id = -1
     } else {
-      valueMap = new TObjectIntHashMap
-      state.objects.put(this, valueMap)
-    }
-
-    if (id == 0) {
-      state.lastId += 1
-      id = state.lastId
-      valueMap.put(value, id)
-      isNew = true
+      var valueMap = state.objects.get(this)
+      if (valueMap != null) {
+        id = valueMap.get(value)
+      } else {
+        valueMap = new TObjectIntHashMap
+        state.objects.put(this, valueMap)
+      }
+      if (id == 0) {
+        state.lastId += 1
+        id = state.lastId
+        valueMap.put(value, id)
+        isNew = true
+      }
     }
 
     dataOutput.writeInt(id)
@@ -44,13 +47,18 @@ trait RefSerializer[T] extends Serializer[T] {
 
   def deserialize(dataInput: DataInput, state: DeserializationState): T = {
     val id = dataInput.readInt()
-    var value = state.objects.get(id)
-    if (value == null) {
-      value = deserializeNewValue(dataInput, state)
-      state.objects.put(id, value)
-    }
 
-    value.asInstanceOf[T]
+    if (id == -1) {
+      null.asInstanceOf[T]
+    } else {
+      var value = state.objects.get(id)
+      if (value == null) {
+        value = deserializeNewValue(dataInput, state)
+        state.objects.put(id, value)
+      }
+
+      value.asInstanceOf[T]
+    }
   }
 }
 

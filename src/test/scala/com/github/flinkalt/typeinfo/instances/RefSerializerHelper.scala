@@ -18,6 +18,9 @@ trait RefSerializerHelper extends GeneratorDrivenPropertyChecks with Assertions 
     forAll { value: T =>
       roundTrip(value)
     }
+
+    val t: T = null.asInstanceOf[T]
+    roundTrip[T](t)
   }
 
   case class Pair[T](p1: T, p2: T)
