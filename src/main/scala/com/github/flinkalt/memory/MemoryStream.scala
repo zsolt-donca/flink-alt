@@ -5,6 +5,8 @@ import cats.instances.vector._
 import cats.syntax.traverse._
 import com.github.flinkalt.api.{DStream, Processing, Stateful, Windowed}
 import com.github.flinkalt.time.Instant
+import org.apache.flink.api.common.InvalidProgramException
+import org.apache.flink.util.InstantiationUtil
 
 case class MemoryStream[+T](elems: Vector[DataOrWatermark[T]]) {
   def toPostData: Vector[DataAndWatermark[T]] = {
@@ -34,8 +36,11 @@ case class MemoryStream[+T](elems: Vector[DataOrWatermark[T]]) {
 
 object MemoryStream {
   implicit def memoryDStream: DStream[MemoryStream] = MemoryDStream
+
   implicit def memoryStateful: Stateful[MemoryStream] = MemoryStateful
+
   implicit def memoryWindowed: Windowed[MemoryStream] = MemoryWindowed
+
   implicit def memoryProcessing: Processing[MemoryStream] = MemoryProcessing
 
   def empty[T]: MemoryStream[T] = MemoryStream(Vector.empty)
@@ -46,5 +51,13 @@ object MemoryStream {
     }
 
     MemoryStream(elems)
+  }
+
+  def ensureSerializable(func: AnyRef): Unit = {
+    try {
+      InstantiationUtil.serializeObject(func)
+    } catch {
+      case ex: Exception => throw new InvalidProgramException("Task not serializable", ex)
+    }
   }
 }

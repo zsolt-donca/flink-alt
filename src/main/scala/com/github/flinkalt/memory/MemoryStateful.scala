@@ -5,18 +5,17 @@ import cats.instances.vector._
 import cats.syntax.traverse._
 import com.github.flinkalt.api.{Keyed, StateTrans, Stateful}
 import com.github.flinkalt.typeinfo.TypeInfo
-import org.apache.flink.api.scala.ClosureCleaner
 
 object MemoryStateful extends Stateful[MemoryStream] {
   override def mapWithState[S: TypeInfo, A, B: TypeInfo](f: MemoryStream[A])(stateTrans: StateTrans[S, A, B])(implicit keyed: Keyed[A]): MemoryStream[B] = {
-    ClosureCleaner.ensureSerializable(stateTrans)
+    MemoryStream.ensureSerializable(stateTrans)
     val vectorStateTrans = stateTrans.andThen(_.map(b => Vector(b)))
 
     flatMapWithState(f)(vectorStateTrans)
   }
 
   override def flatMapWithState[S: TypeInfo, A, B: TypeInfo](f: MemoryStream[A])(stateTrans: StateTrans[S, A, Vector[B]])(implicit keyed: Keyed[A]): MemoryStream[B] = {
-    ClosureCleaner.ensureSerializable(stateTrans)
+    MemoryStream.ensureSerializable(stateTrans)
     val trans: DataOrWatermark[A] => State[Map[keyed.K, S], Vector[DataOrWatermark[B]]] = {
       case JustData(time, value) => stateByKey(keyed.fun(value), stateTrans(value)).map(v => v.map(b => JustData(time, b)))
       case JustWatermark(time) => State.pure(Vector(JustWatermark(time)))

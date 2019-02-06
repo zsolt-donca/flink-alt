@@ -147,7 +147,7 @@ object TestUtils extends Assertions {
   private def createFlinkSource[A: TypeInfo](env: StreamExecutionEnvironment, vector: Vector[DataAndWatermark[A]]): DataStream[A] = {
     env.fromCollection(vector)
       .assignTimestampsAndWatermarks(dataTimestampExtractor[A])
-      .map(data => data.value)
+      .map((data: DataAndWatermark[A]) => data.value)
   }
 
   private def dataTimestampExtractor[A]: AssignerWithPunctuatedWatermarks[DataAndWatermark[A]] = {

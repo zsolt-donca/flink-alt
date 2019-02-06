@@ -1,16 +1,12 @@
 package com.github.flinkalt.typeinfo
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.util
 
 import com.github.flinkalt.typeinfo.auto._
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerConfigSnapshot, TypeSerializerSerializationUtil}
-import org.apache.flink.api.java.tuple.{Tuple2 => FTuple2}
+import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
 import org.scalatest.FunSuite
-
-import scala.collection.JavaConverters._
 
 class FlinkTypeSerializerSerializationTest extends FunSuite {
 
@@ -37,23 +33,19 @@ class FlinkTypeSerializerSerializationTest extends FunSuite {
 
   private def assertRoundTripOfSerializerAndConfig(typeInfo: TypeInformation[_]): Unit = {
     val serializer = typeInfo.createSerializer(null)
-    val config = serializer.snapshotConfiguration()
 
     val bos = new ByteArrayOutputStream()
     val out = new DataOutputViewStreamWrapper(bos)
-    //noinspection ScalaRedundantCast
-    val serializersAndConfigs = List(FTuple2.of(serializer, config)).asJava.asInstanceOf[util.List[FTuple2[TypeSerializer[_], TypeSerializerConfigSnapshot]]]
-    TypeSerializerSerializationUtil.writeSerializersAndConfigsWithResilience(out, serializersAndConfigs)
+
+    val typeSerializerSnapshot = TypeSerializerUtils.snapshotBackwardsCompatible(serializer).head
+    val version = typeSerializerSnapshot.getCurrentVersion
+
+    typeSerializerSnapshot.writeSnapshot(out)
 
     val in = new DataInputViewStreamWrapper(new ByteArrayInputStream(bos.toByteArray))
-    val results = TypeSerializerSerializationUtil.readSerializersAndConfigsWithResilience(in, getClass.getClassLoader).asScala
+    typeSerializerSnapshot.readSnapshot(version, in, getClass.getClassLoader)
 
-    assert(results.size == 1)
-    val serializerCopy = results.head.f0
-    val configCopy = results.head.f1
-
-    assert(serializer == serializerCopy)
-    assert(config == configCopy)
+    assert(serializer == typeSerializerSnapshot.restoreSerializer())
   }
 }
 

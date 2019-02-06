@@ -77,7 +77,7 @@ class TypeInfo6_GenericTest extends PropSpec with RefSerializerHelper {
 
     sealed trait AnotherSealedTrait
     case class CaseThree(i: Int) extends AnotherSealedTrait
-    case object CaseFour extends AnotherSealedTrait
+
 
     forAllRoundTrip[SealedTrait]()
   }
