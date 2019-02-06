@@ -1,7 +1,7 @@
 package com.github.flinkalt.typeinfo
 
 import com.github.flinkalt.typeinfo.serializer.{DeserializationState, SerializationState}
-import org.apache.flink.api.common.typeutils.{CompatibilityResult, ParameterlessTypeSerializerConfig, TypeSerializer, TypeSerializerConfigSnapshot}
+import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
 final class TypeInfoBasedTypeSerializer[T](private val typeInfo: TypeInfo[T]) extends TypeSerializer[T] {
@@ -26,9 +26,7 @@ final class TypeInfoBasedTypeSerializer[T](private val typeInfo: TypeInfo[T]) ex
 
   override def deserialize(source: DataInputView): T = typeInfo.deserialize(source, new DeserializationState)
 
-  override def snapshotConfiguration(): TypeSerializerConfigSnapshot = new ParameterlessTypeSerializerConfig("")
-
-  override def ensureCompatibility(configSnapshot: TypeSerializerConfigSnapshot): CompatibilityResult[T] = CompatibilityResult.compatible()
+  override def snapshotConfiguration(): TypeSerializerSnapshot[T] = new ParameterlessTypeSerializerConfig("")
 
   override def hashCode(): Int = typeInfo.hashCode()
 

@@ -2,12 +2,12 @@
 lazy val buildSettings = Seq(
   organization := "com.github",
   name := "flink-alt",
-  version := "0.9",
-  scalaVersion := "2.11.12"
+  version := "0.10",
+  scalaVersion := "2.12.8"
 )
 
 val versions = new {
-  val flink = "1.4.2"
+  val flink = "1.7.1"
   val cats = "1.0.1"
   val simulacrum = "0.12.0"
   val shapeless = "2.3.3"

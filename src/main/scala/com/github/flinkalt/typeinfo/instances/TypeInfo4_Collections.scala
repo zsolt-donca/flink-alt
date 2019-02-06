@@ -53,7 +53,7 @@ abstract class MapTypeInfo[C[k, v] <: Map[k, v], K, V](implicit kti: TypeInfo[K]
     val b = canBuild()
     val size = dataInput.readInt()
     b.sizeHint(size)
-    for (i <- 1 to size) {
+    for (_ <- 1 to size) {
       val k = kti.deserialize(dataInput, state)
       val v = vti.deserialize(dataInput, state)
       b += Tuple2(k, v)

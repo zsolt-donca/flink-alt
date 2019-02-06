@@ -12,8 +12,11 @@ class SerializationTest extends FunSuite {
   // methods declared here are not serializable because FunSuite isn't
 
   def mappingFunction(i: Int): String = i.toString
+
   def flatMappingFunction(i: Int): List[String] = List(i.toString)
+
   def filterFunction(i: Int): Boolean = i == 0
+
   def collectFunction: PartialFunction[Int, String] = {
     case x if filterFunction(x) => "zero"
   }
