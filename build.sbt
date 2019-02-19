@@ -38,7 +38,7 @@ lazy val testDependencies = Seq(
 lazy val commonSettings = Seq(
   scalacOptions := Seq(
     "-encoding", "UTF-8",
-    "-deprecation",
+    //    "-deprecation",
     "-feature",
     "-unchecked",
     "-language:higherKinds",
@@ -49,7 +49,7 @@ lazy val commonSettings = Seq(
     "-Ywarn-unused",
     "-Ywarn-unused-import",
     "-Ypartial-unification",
-    "-Xfatal-warnings",
+    //    "-Xfatal-warnings",
     "-Xfuture",
     "-Xlint"
   ),
