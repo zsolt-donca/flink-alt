@@ -2,7 +2,8 @@ package com.github.flinkalt.typeinfo
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
-import com.github.flinkalt.typeinfo.auto._
+import com.github.flinkalt.typeinfo.AutoFlinkTypeInfo._
+import com.github.flinkalt.typeinfo.generic.auto._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}

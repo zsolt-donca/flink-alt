@@ -2,6 +2,7 @@ package com.github.flinkalt.typeinfo
 
 import java.io.{DataInput, DataOutput}
 
+import com.github.flinkalt.typeinfo.instances._
 import com.github.flinkalt.typeinfo.serializer._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
@@ -48,7 +49,12 @@ abstract class SerializerBasedTypeInfo[T](implicit val tag: ClassTag[T]) extends
   }
 }
 
-object TypeInfo {
+object TypeInfo
+  extends TypeInfo1_Primitives
+    with TypeInfo2_Common
+    with TypeInfo3_Arrays
+    with TypeInfo4_Collections
+    with TypeInfo5_Injections {
   @inline def apply[T](implicit typeInfo: TypeInfo[T]): TypeInfo[T] = typeInfo
 
   def dummy[T]: TypeInfo[T] = new TypeInfo[T] {

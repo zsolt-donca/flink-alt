@@ -1,8 +1,8 @@
 package com.github.flinkalt.typeinfo.instances
 
-import com.github.flinkalt.typeinfo.injections.Injections
 import com.github.flinkalt.typeinfo.Injection
-import com.github.flinkalt.typeinfo.auto._
+import com.github.flinkalt.typeinfo.generic.auto._
+import com.github.flinkalt.typeinfo.injections.Injections
 import org.scalacheck.Arbitrary
 import org.scalatest.PropSpec
 

@@ -3,7 +3,6 @@ package com.github.flinkalt.typeinfo.instances
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
 import com.github.flinkalt.typeinfo.TypeInfo
-import com.github.flinkalt.typeinfo.auto._
 import com.github.flinkalt.typeinfo.serializer.{DeserializationState, SerializationState}
 import org.scalacheck.Arbitrary
 import org.scalacheck.ScalacheckShapeless._

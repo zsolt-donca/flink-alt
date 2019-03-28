@@ -1,16 +1,16 @@
-package com.github.flinkalt.typeinfo.instances
+package com.github.flinkalt.typeinfo.generic
 
 import java.io.{DataInput, DataOutput}
 
-import com.github.flinkalt.typeinfo.serializer._
+import com.github.flinkalt.typeinfo.serializer.{DeserializationState, RefSerializer, SerializationState}
 import com.github.flinkalt.typeinfo.{SerializerBasedTypeInfo, TypeInfo}
 import shapeless.{Generic, Lazy}
 
 import scala.reflect.ClassTag
 
 trait TypeInfo6_Generic {
-  implicit def genericEncoder[T: ClassTag, R](implicit gen: Generic.Aux[T, R], genTypeInfo: Lazy[GenTypeInfo[R]]): TypeInfo[T] =
-    new SerializerBasedTypeInfo[T] with RefSerializer[T] with InductiveObject {
+  implicit def genericEncoder[T: ClassTag, R](implicit gen: Generic.Aux[T, R], genTypeInfo: Lazy[GenTypeInfo[R]]): MkTypeInfo[T] =
+    MkTypeInfo(new SerializerBasedTypeInfo[T] with RefSerializer[T] with InductiveObject {
       override val nestedTypeInfos: TypeInfo[R] = genTypeInfo.value.value
 
       override def serializeNewValue(value: T, dataOutput: DataOutput, state: SerializationState): Unit = {
@@ -26,5 +26,5 @@ trait TypeInfo6_Generic {
       }
 
       override def equals(other: Any): Boolean = inductive[Boolean](true)(super.equals(other))
-    }
+    })
 }

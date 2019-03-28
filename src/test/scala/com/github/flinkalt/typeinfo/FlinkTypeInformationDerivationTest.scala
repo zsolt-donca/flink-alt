@@ -2,7 +2,7 @@ package com.github.flinkalt.typeinfo
 
 import cats.data.ValidatedNel
 import com.github.flinkalt.time.Instant
-import com.github.flinkalt.typeinfo.auto._
+import com.github.flinkalt.typeinfo.AutoFlinkTypeInfo._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.scalatest.FunSuite
 
@@ -37,6 +37,8 @@ class FlinkTypeInformationDerivationTest extends FunSuite {
   }
 
   test("Type info of ADTs") {
+    import generic.auto._
+
     implicitly[TypeInformation[(String, Long, Int)]]
 
     implicitly[TypeInformation[DataAndWatermark[String]]]
@@ -46,17 +48,22 @@ class FlinkTypeInformationDerivationTest extends FunSuite {
   }
 
   test("Parameterized type info") {
+    import generic.auto._
+
     def envelopeTypeInfo[T: TypeInfo]: TypeInfo[Envelope[T]] = TypeInfo[Envelope[T]]
+
     envelopeTypeInfo[String]
     envelopeTypeInfo[(String, Int, Long)]
 
     def dataTypeInfo[T: TypeInfo]: TypeInfo[DataAndWatermark[T]] = TypeInfo[DataAndWatermark[T]]
+
     dataTypeInfo[String]
     dataTypeInfo[(String, Int, Long)]
   }
 
   test("Type information equality of Either") {
     def t1 = implicitly[TypeInformation[Either[String, Int]]]
+
     def t2 = implicitly[TypeInformation[Either[String, Int]]]
 
     assertEqualDifferentReferences(t1, t2)
@@ -64,6 +71,7 @@ class FlinkTypeInformationDerivationTest extends FunSuite {
 
   test("Type information equality of Option") {
     def t1 = implicitly[TypeInformation[Option[String]]]
+
     def t2 = implicitly[TypeInformation[Option[String]]]
 
     assertEqualDifferentReferences(t1, t2)
@@ -71,6 +79,7 @@ class FlinkTypeInformationDerivationTest extends FunSuite {
 
   test("Type information inequality of Option") {
     def t1 = implicitly[TypeInformation[Option[Double]]]
+
     def t2 = implicitly[TypeInformation[Option[Int]]]
 
     assert(!(t1 eq t2))
@@ -79,33 +88,45 @@ class FlinkTypeInformationDerivationTest extends FunSuite {
 
   test("Type information equality for Int") {
     def t1 = implicitly[TypeInformation[Int]]
+
     def t2 = implicitly[TypeInformation[Int]]
 
     assert(t1 == t2)
   }
 
   test("Type information equality of product") {
+    import generic.auto._
+
     def t1 = implicitly[TypeInformation[Envelope[(String, Int)]]]
+
     def t2 = implicitly[TypeInformation[Envelope[(String, Int)]]]
 
     assertEqualDifferentReferences(t1, t2)
   }
 
   test("Type information equality of non-recursive coproduct") {
+    import generic.auto._
+
     def t1 = implicitly[TypeInformation[Choice]]
+
     def t2 = implicitly[TypeInformation[Choice]]
 
     assertEqualDifferentReferences(t1, t2)
   }
 
   test("Type information equality of recursive coproduct") {
+    import generic.auto._
+
     def t1 = implicitly[TypeInformation[Tree[Int]]]
+
     def t2 = implicitly[TypeInformation[Tree[Int]]]
 
     assertEqualDifferentReferences(t1, t2)
   }
 
   test("Type information for errors or something") {
+    import generic.auto._
+
     val t1 = implicitly[TypeInformation[ValidatedNel[ErrorType, String]]]
     val t2 = implicitly[TypeInformation[ValidatedNel[ErrorType, String]]]
 

@@ -1,4 +1,4 @@
-package com.github.flinkalt.typeinfo.instances
+package com.github.flinkalt.typeinfo.generic
 
 /**
   * A recursive object supporting the definition of inductive methods which don't cause a

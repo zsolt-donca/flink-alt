@@ -1,4 +1,4 @@
-package com.github.flinkalt.typeinfo.instances
+package com.github.flinkalt.typeinfo.generic
 
 import java.io.{DataInput, DataOutput}
 
@@ -21,7 +21,7 @@ object GenTypeInfo {
     }
   }
 
-  implicit def hlistTypeInfo[H, T <: HList](implicit headTi: Lazy[TypeInfo[H]], tailTi: GenTypeInfo[T]): GenTypeInfo[H :: T] = new GenTypeInfo[::[H, T]] {
+  implicit def hlistTypeInfo[H, T <: HList](implicit headTi: Lazy[TypeInfo[H]], tailTi: GenTypeInfo[T]): GenTypeInfo[H :: T] = new GenTypeInfo[H :: T] {
     override def value: TypeInfo[H :: T] = new SerializerBasedTypeInfo[H :: T] with ValueSerializer[H :: T] {
       override lazy val nestedTypeInfos: (TypeInfo[H], TypeInfo[T]) = (headTi.value, tailTi.value)
 
@@ -55,16 +55,16 @@ object GenTypeInfo {
     }
   }
 
-  implicit def coproductSerializer[H, T <: Coproduct](implicit headTi: Lazy[TypeInfo[H]], tailTi: GenTypeInfo[T]): GenTypeInfo[H :+: T] = new GenTypeInfo[H :+: T] {
+  implicit def coproductSerializer[H, T <: Coproduct](implicit headTi: Lazy[MkTypeInfo[H]], tailTi: GenTypeInfo[T]): GenTypeInfo[H :+: T] = new GenTypeInfo[H :+: T] {
     override def value: TypeInfo[H :+: T] = new SerializerBasedTypeInfo[H :+: T] with ValueSerializer[H :+: T] {
-      override lazy val nestedTypeInfos: (TypeInfo[H], TypeInfo[T]) = (headTi.value, tailTi.value)
+      override lazy val nestedTypeInfos: (TypeInfo[H], TypeInfo[T]) = (headTi.value.value, tailTi.value)
 
       override def serializeNewValue(value: H :+: T, dataOutput: DataOutput, state: SerializationState): Unit = {
         value match {
           case Inl(head) =>
             dataOutput.writeInt(state.coproductCases)
             state.coproductCases = 0
-            headTi.value.serializeNewValue(head, dataOutput, state)
+            headTi.value.value.serializeNewValue(head, dataOutput, state)
           case Inr(tail) =>
             state.coproductCases += 1
             tailTi.value.serializeNewValue(tail, dataOutput, state)
@@ -77,7 +77,7 @@ object GenTypeInfo {
         }
 
         if (state.decreaseAndCheckCoproductCases) {
-          Inl(headTi.value.deserializeNewValue(dataInput, state))
+          Inl(headTi.value.value.deserializeNewValue(dataInput, state))
         } else {
           Inr(tailTi.value.deserializeNewValue(dataInput, state))
         }
