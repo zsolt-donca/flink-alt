@@ -1,6 +1,6 @@
 package com.github.flinkalt.typeinfo.instances
 
-import com.github.flinkalt.memory.DataAndWatermark
+import com.github.flinkalt.typeinfo.DataAndWatermark
 import com.github.flinkalt.typeinfo.auto._
 import org.scalatest.PropSpec
 

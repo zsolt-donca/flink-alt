@@ -1,10 +1,12 @@
 package com.github.flinkalt.typeinfo
 
 import cats.data.ValidatedNel
-import com.github.flinkalt.memory.DataAndWatermark
+import com.github.flinkalt.time.Instant
 import com.github.flinkalt.typeinfo.auto._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.scalatest.FunSuite
+
+case class DataAndWatermark[T](data: T, watermark: Instant)
 
 class FlinkTypeInformationDerivationTest extends FunSuite {
   case class Envelope[T](s: String, i: Int, contents: T)
