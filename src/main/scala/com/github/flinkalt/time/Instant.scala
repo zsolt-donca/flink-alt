@@ -6,6 +6,7 @@ import cats.Order
 import cats.instances.long._
 import com.github.flinkalt.typeinfo.TypeInfo
 import com.github.flinkalt.typeinfo.generic.semiauto
+import io.circe.{Decoder, Encoder, HCursor, Json}
 
 case class Instant(millis: Long) extends AnyVal {
   @inline def -(duration: Duration): Instant = Instant(millis - duration.millis)
@@ -25,6 +26,10 @@ case class Instant(millis: Long) extends AnyVal {
 
 object Instant {
   implicit def instantTypeInfo: TypeInfo[Instant] = semiauto.deriveTypeInfo
+
+  implicit def instantEncoder: Encoder[Instant] = (a: Instant) => Json.fromLong(a.millis)
+
+  implicit def instantDecoder: Decoder[Instant] = (c: HCursor) => Decoder.decodeLong(c).map(long => long.toInstant)
 
   val minValue: Instant = Instant(Long.MinValue)
 

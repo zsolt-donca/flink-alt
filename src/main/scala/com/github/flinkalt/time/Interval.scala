@@ -4,6 +4,7 @@ import cats.instances.long._
 import cats.kernel.Order
 import com.github.flinkalt.typeinfo.TypeInfo
 import com.github.flinkalt.typeinfo.generic.semiauto
+import io.circe.{Decoder, Encoder}
 
 case class Interval(start: Instant, end: Instant) {
   @inline def toDuration: Duration = Duration(end.millis - start.millis)
@@ -16,6 +17,10 @@ case class Interval(start: Instant, end: Instant) {
 
 object Interval {
   implicit def intervalTypeInfo: TypeInfo[Interval] = semiauto.deriveTypeInfo
+
+  implicit def intervalEncoder: Encoder[Interval] = io.circe.generic.semiauto.deriveEncoder
+
+  implicit def intervalDecoder: Decoder[Interval] = io.circe.generic.semiauto.deriveDecoder
 
   def parseZoned(start: String, end: String): Interval = {
     Interval(Instant.parseZoned(start), Instant.parseZoned(end))

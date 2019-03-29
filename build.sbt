@@ -9,7 +9,7 @@ lazy val buildSettings = Seq(
 val versions = new {
   val flink = "1.7.1"
   val cats = "1.0.1"
-  val simulacrum = "0.12.0"
+  val circe = "0.11.1"
   val shapeless = "2.3.3"
   val scalatest = "3.0.4"
   val scalacheck = "1.13.5"
@@ -22,9 +22,13 @@ lazy val compileDependencies = Seq(
   "org.apache.flink" %% "flink-scala" % versions.flink % "provided",
   "org.apache.flink" %% "flink-streaming-scala" % versions.flink % "provided",
   "com.chuusai" %% "shapeless" % versions.shapeless,
-  "com.github.mpilquist" %% "simulacrum" % versions.simulacrum,
   "org.typelevel" %% "cats-core" % versions.cats,
-  "net.sf.trove4j" % "trove4j" % "3.0.3"
+  "net.sf.trove4j" % "trove4j" % "3.0.3",
+
+  "io.circe" %% "circe-core" % versions.circe,
+  "io.circe" %% "circe-generic" % versions.circe,
+  "io.circe" %% "circe-parser" % versions.circe,
+  "io.circe" %% "circe-generic-extras" % versions.circe,
 )
 
 lazy val testDependencies = Seq(
