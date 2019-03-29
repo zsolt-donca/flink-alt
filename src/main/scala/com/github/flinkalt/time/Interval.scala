@@ -2,6 +2,8 @@ package com.github.flinkalt.time
 
 import cats.instances.long._
 import cats.kernel.Order
+import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.generic.semiauto
 
 case class Interval(start: Instant, end: Instant) {
   @inline def toDuration: Duration = Duration(end.millis - start.millis)
@@ -13,6 +15,8 @@ case class Interval(start: Instant, end: Instant) {
 }
 
 object Interval {
+  implicit def intervalTypeInfo: TypeInfo[Interval] = semiauto.deriveTypeInfo
+
   def parseZoned(start: String, end: String): Interval = {
     Interval(Instant.parseZoned(start), Instant.parseZoned(end))
   }

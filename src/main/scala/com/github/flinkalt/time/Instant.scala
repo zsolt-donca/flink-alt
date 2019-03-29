@@ -4,6 +4,8 @@ import java.time.ZoneOffset
 
 import cats.Order
 import cats.instances.long._
+import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.generic.semiauto
 
 case class Instant(millis: Long) extends AnyVal {
   @inline def -(duration: Duration): Instant = Instant(millis - duration.millis)
@@ -22,6 +24,8 @@ case class Instant(millis: Long) extends AnyVal {
 }
 
 object Instant {
+  implicit def instantTypeInfo: TypeInfo[Instant] = semiauto.deriveTypeInfo
+
   val minValue: Instant = Instant(Long.MinValue)
 
   implicit def instantOrder: Order[Instant] = Order.by(_.millis)

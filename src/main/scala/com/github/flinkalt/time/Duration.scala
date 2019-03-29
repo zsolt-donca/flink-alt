@@ -2,6 +2,8 @@ package com.github.flinkalt.time
 
 import cats.Order
 import cats.instances.long._
+import com.github.flinkalt.typeinfo.TypeInfo
+import com.github.flinkalt.typeinfo.generic.semiauto
 
 case class Duration(millis: Long) extends AnyVal {
   @inline def +(duration: Duration): Duration = Duration(millis + duration.millis)
@@ -16,6 +18,8 @@ case class Duration(millis: Long) extends AnyVal {
 }
 
 object Duration {
+  implicit def durationTypeInfo: TypeInfo[Duration] = semiauto.deriveTypeInfo
+
   val zero: Duration = Duration(0L)
 
   implicit def durationOrder: Order[Duration] = Order.by(_.millis)
