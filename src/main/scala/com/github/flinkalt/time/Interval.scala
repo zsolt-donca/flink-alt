@@ -1,7 +1,9 @@
 package com.github.flinkalt.time
 
+import cats.instances.either._
 import cats.instances.long._
 import cats.kernel.Order
+import cats.syntax.apply._
 import com.github.flinkalt.typeinfo.TypeInfo
 import com.github.flinkalt.typeinfo.generic.semiauto
 import io.circe.{Decoder, Encoder}
@@ -22,8 +24,8 @@ object Interval {
 
   implicit def intervalDecoder: Decoder[Interval] = io.circe.generic.semiauto.deriveDecoder
 
-  def parseZoned(start: String, end: String): Interval = {
-    Interval(Instant.parseZoned(start), Instant.parseZoned(end))
+  def parseZoned(start: String, end: String): Either[String, Interval] = {
+    (Instant.parseZoned(start), Instant.parseZoned(end)).mapN(Interval(_, _))
   }
 
   implicit val intervalOrder: Order[Interval] = Order.whenEqual[Interval](Order.by(_.start.millis), Order.by(_.end.millis))
