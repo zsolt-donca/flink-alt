@@ -4,7 +4,7 @@ import com.github.flinkalt.typeinfo.DataAndWatermark
 import com.github.flinkalt.typeinfo.generic.auto._
 import org.scalatest.PropSpec
 
-class TypeInfo6_GenericTest extends PropSpec with RefSerializerHelper {
+class TypeInfo10_GenericTest extends PropSpec with RefSerializerHelper {
 
   property("Empty product") {
     case class EmptyCaseClass()

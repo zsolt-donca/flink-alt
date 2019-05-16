@@ -19,9 +19,9 @@ abstract class DirectTypeInfo[T](typeInformation: TypeInformation[T])(implicit v
   override def equals(other: Any): Boolean = {
     other match {
       case that: AnyRef if that eq this => true
-      case that: DirectTypeInfo[_] =>
+      case that: DirectTypeInfo[_]      =>
         tag == that.tag
-      case _ => false
+      case _                            => false
     }
   }
 
@@ -37,10 +37,10 @@ abstract class SerializerBasedTypeInfo[T](implicit val tag: ClassTag[T]) extends
 
   override def equals(other: Any): Boolean = {
     other match {
-      case that: AnyRef if that eq this => true
+      case that: AnyRef if that eq this                                       => true
       case that: SerializerBasedTypeInfo[_] if this.getClass == that.getClass =>
         this.tag == that.tag && this.nestedTypeInfos == that.nestedTypeInfos
-      case _ => false
+      case _                                                                  => false
     }
   }
 
@@ -54,7 +54,8 @@ object TypeInfo
     with TypeInfo2_Common
     with TypeInfo3_Arrays
     with TypeInfo4_Collections
-    with TypeInfo5_Injections {
+    with TypeInfo5_Injections
+    with TypeInfo6_Tuples {
   @inline def apply[T](implicit typeInfo: TypeInfo[T]): TypeInfo[T] = typeInfo
 
   def dummy[T]: TypeInfo[T] = new TypeInfo[T] {

@@ -7,7 +7,7 @@ import com.github.flinkalt.typeinfo.{Injection, SerializerBasedTypeInfo, TypeInf
 
 import scala.reflect.ClassTag
 
-trait TypeInfo5_Injections {
+trait TypeInfo5_Injections extends TypeInfo6_Tuples {
   implicit def injectionTypeInfo[T: ClassTag, U](implicit inj: Injection[T, U], typeInfo: TypeInfo[U]): TypeInfo[T] = new SerializerBasedTypeInfo[T] with RefSerializer[T] {
     override val nestedTypeInfos: TypeInfo[U] = typeInfo
 

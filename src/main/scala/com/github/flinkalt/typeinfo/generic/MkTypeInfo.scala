@@ -5,7 +5,7 @@ import com.github.flinkalt.typeinfo.TypeInfo
 
 case class MkTypeInfo[T](value: TypeInfo[T])
 
-object MkTypeInfo extends TypeInfo6_Generic with UseMkTypeInfo {
+object MkTypeInfo extends TypeInfo10_Generic with UseMkTypeInfo {
   def apply[T](implicit mk: MkTypeInfo[T]): MkTypeInfo[T] = mk
 
   implicit def optionMkTypeInfo[T: TypeInfo]: MkTypeInfo[Option[T]] = MkTypeInfo(TypeInfo[Option[T]])

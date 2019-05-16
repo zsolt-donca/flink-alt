@@ -8,7 +8,7 @@ import shapeless.{Generic, Lazy}
 
 import scala.reflect.ClassTag
 
-trait TypeInfo6_Generic {
+trait TypeInfo10_Generic {
   implicit def genericEncoder[T: ClassTag, R](implicit gen: Generic.Aux[T, R], genTypeInfo: Lazy[GenTypeInfo[R]]): MkTypeInfo[T] =
     MkTypeInfo(new SerializerBasedTypeInfo[T] with RefSerializer[T] with InductiveObject {
       override val nestedTypeInfos: TypeInfo[R] = genTypeInfo.value.value
