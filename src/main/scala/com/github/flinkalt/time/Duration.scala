@@ -72,18 +72,18 @@ object Duration {
   private val valueAndUnit = "(\\d+)\\s*(\\w*)".r
 
   private val parseToDurationPF: PartialFunction[String, Duration] = {
-    case valueAndUnit(IntValue(i), "")                                          => i millis
-    case valueAndUnit(IntValue(i), "ms" | "millis" | "milliseconds")            => i millis
-    case valueAndUnit(IntValue(i), "s" | "sec" | "secs" | "second" | "seconds") => i seconds
-    case valueAndUnit(IntValue(i), "m" | "minute" | "minutes")                  => i minutes
-    case valueAndUnit(IntValue(i), "h" | "hour" | "hours")                      => i hours
-    case valueAndUnit(IntValue(i), "d" | "day" | "days")                        => (24 * i) hours
-    case valueAndUnit(IntValue(i), "w" | "week" | "weeks")                      => (7 * 24 * i) hours
+    case valueAndUnit(LongValue(i), "")                                          => i millis
+    case valueAndUnit(LongValue(i), "ms" | "millis" | "milliseconds")            => i millis
+    case valueAndUnit(LongValue(i), "s" | "sec" | "secs" | "second" | "seconds") => i seconds
+    case valueAndUnit(LongValue(i), "m" | "minute" | "minutes")                  => i minutes
+    case valueAndUnit(LongValue(i), "h" | "hour" | "hours")                      => i hours
+    case valueAndUnit(LongValue(i), "d" | "day" | "days")                        => (24 * i) hours
+    case valueAndUnit(LongValue(i), "w" | "week" | "weeks")                      => (7 * 24 * i) hours
   }
 
-  private object IntValue {
-    def unapply(str: String): Option[Int] = {
-      Either.catchOnly[NumberFormatException](str.toInt).toOption
+  private object LongValue {
+    def unapply(str: String): Option[Long] = {
+      Either.catchOnly[NumberFormatException](str.toLong).toOption
     }
   }
 
