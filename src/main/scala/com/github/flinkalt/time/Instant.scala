@@ -22,7 +22,7 @@ case class Instant(millis: Long) extends AnyVal {
   @inline def durationBetween(end: Instant): Duration = Duration(end.millis - this.millis)
 
   override def toString: String = {
-    java.time.ZonedDateTime.ofInstant(java.time.Instant.ofEpochMilli(millis), ZoneOffset.UTC).toString
+    java.time.Instant.ofEpochMilli(millis).toString
   }
 }
 
@@ -71,6 +71,16 @@ object Instant {
 
   def parseZoned(str: String): Either[String, Instant] = {
     Either.catchOnly[DateTimeParseException](unsafeParseZoned(str))
+      .leftMap(e => e.getMessage)
+  }
+
+  def unsafeParseInstant(str: String): Instant = {
+    val millis = java.time.Instant.parse(str).toEpochMilli
+    Instant(millis)
+  }
+
+  def parseInstant(str: String): Either[String, Instant] = {
+    Either.catchOnly[DateTimeParseException](unsafeParseInstant(str))
       .leftMap(e => e.getMessage)
   }
 }
