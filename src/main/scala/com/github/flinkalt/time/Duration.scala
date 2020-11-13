@@ -21,6 +21,9 @@ case class Duration(millis: Long) extends AnyVal {
   @inline def <(that: Duration): Boolean = this.millis < that.millis
   @inline def <=(that: Duration): Boolean = this.millis <= that.millis
 
+  @inline def *(that: Int): Duration = Duration(millis * that)
+  @inline def *(that: Long): Duration = Duration(millis * that)
+
   override def toString: String = java.time.Duration.ofMillis(millis).toString
 }
 
@@ -77,8 +80,8 @@ object Duration {
     case valueAndUnit(LongValue(i), "s" | "sec" | "secs" | "second" | "seconds") => i seconds
     case valueAndUnit(LongValue(i), "m" | "minute" | "minutes")                  => i minutes
     case valueAndUnit(LongValue(i), "h" | "hour" | "hours")                      => i hours
-    case valueAndUnit(LongValue(i), "d" | "day" | "days")                        => (24 * i) hours
-    case valueAndUnit(LongValue(i), "w" | "week" | "weeks")                      => (7 * 24 * i) hours
+    case valueAndUnit(LongValue(i), "d" | "day" | "days")                        => i days
+    case valueAndUnit(LongValue(i), "w" | "week" | "weeks")                      => i weeks
   }
 
   private object LongValue {
